@@ -1,0 +1,38 @@
+{{#if user}}
+
+<div class="container p-10">
+  <div class="row">
+    <div class="col-md-10 mx-auto">
+      <div class="card text-center">
+        <div class="card-header" align="left">
+          <h4>Daños en <b>{{sname}}</b></h4>
+
+       
+        </div>
+        <div class="card-body" id="ttk">
+          
+            <table class="table" >
+              <thead>
+                <tr align="center">
+                      <th><i class="fas fa-bolt"></i></th><th>N°</th><th>Daño</th><th>Unidad</th> <th>Cantidad</th><th>Fotos</th>  
+                </tr>
+              </thead>
+              <tbody>
+                {{#damages as |ar|}}
+                <tr >   
+                  <td><a href="/sectors/?id_case={{ar.id_case}}?id_sector={{ar.id_sector}}"><i class="fas fa-edit"></i></a></td>         
+                    <td>{{sum @key 1}}</td><td>{{ar.damage_name}}</td><td>{{ar.damage_unit}}</td> <td>{{ar.damage_size}}</td><td><a href="">Fotos</a></td><td>{{ar.shs}}</td>
+                    
+                </tr>
+                {{/damages}}
+              </tbody>
+            </table>
+
+          <form action="/signup" method="POST"></form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{else}}
+{{/if}}
