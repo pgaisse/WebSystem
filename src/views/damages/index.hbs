@@ -11,7 +11,7 @@
         </div>
         <div class="card-body" id="ttk">
           
-            <table class="table" >
+            <table class="table"  id="table">
               <thead>
                 <tr align="center">
                       <th><i class="fas fa-bolt"></i></th><th>N°</th><th>Daño</th><th>Unidad</th> <th>Cantidad</th><th>Fotos</th>  
@@ -20,15 +20,26 @@
               <tbody>
                 {{#damages as |ar|}}
                 <tr >   
-                  <td><a href="/sectors/?id_case={{ar.id_case}}?id_sector={{ar.id_sector}}"><i class="fas fa-edit"></i></a></td>         
+                  <td><a href="/sectors/?id_case={{ar.id_case}}&id_sector={{ar.id_sector}}"><i class="fas fa-edit"></i></a></td>         
                     <td>{{sum @key 1}}</td><td>{{ar.damage_name}}</td><td>{{ar.damage_unit}}</td> <td>{{ar.damage_size}}</td><td><a href="">Fotos</a></td><td>{{ar.shs}}</td>
                     
                 </tr>
                 {{/damages}}
+                
               </tbody>
+              
             </table>
+          <div id="divformulario"></div>
+          <div class="mb-3">
+          <input type="hidden" id="defaultDamages" name="campoOculto" value={{defaultDamages}}>
 
-          <form action="/signup" method="POST"></form>
+          <p><a href="" onclick="bringForm()"><i class="fa-solid fa-plus"></i> Nuevo daño</a></p>
+          <form action="/signup" method="POST">
+          <label for="formFile" class="form-label">Default file input example</label>
+          <input class="form-control" name="image" type="file" id="formFile">
+          <button type="submit">Upload</button>
+  </form>
+</div>
         </div>
       </div>
     </div>

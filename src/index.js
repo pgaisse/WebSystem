@@ -7,6 +7,7 @@ const passport = require('passport');
 const flash = require('connect-flash');
 const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
+const multer = require('multer');
 
 const { database } = require('./keys');
 
@@ -111,6 +112,10 @@ app.set('view engine', '.hbs');
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(multer({
+  dest:'public/uploads'
+
+}).single('image'));
 
 app.use(session({
   secret: 'faztmysqlnodemysql',

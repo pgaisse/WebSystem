@@ -27,40 +27,40 @@ router.get('/', async (req, res) => {
 router.get('/myinsp',isLoggedIn, async (req, res) => {
     
     try{
-        let query_my =`
-        SELECT 
-        (select COUNT(c_d_s.id_sector) from c_d_s
-        inner join cases
-        on cases.id_case=c_d_s.id_case
-        inner join advisers
-        on advisers.id_adviser=cases.id_adviser
-        where advisers.id_adviser=a.id_adviser and cases.id_case=c.id_case) as nsectors,
-        a.id_adviser, c.id_case, clients.client_name,
-        clients.client_lastname, status.status_name, DATE_FORMAT(c.case_date, "%d/%l/%Y") case_date,
-        clients.client_address, clients.client_rut
-        from cases c
-        inner join advisers a
-        on a.id_adviser=c.id_adviser
-        inner join clients
-        on clients.id_client=c.id_client
-        inner join status
-        on status.id_status=c.id_status
-        inner join c_d_s as cs
-        on cs.id_case=c.id_case
+       /* let query_my =`
+        
+	select status.status_name,count(c_d_s.id_sector)as nsectors ,cases.id_case,DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date, clients.client_name, clients.client_lastname, clients.client_address, clients.client_rut from c_d_s 
+    inner join cases
+    on cases.id_case=c_d_s.id_case
+    inner join advisers
+    on advisers.id_adviser=cases.id_adviser
+    inner join status
+    on status.id_status=cases.id_status
+    inner join clients
+    on clients.id_client=cases.id_client
+    where advisers.id_adviser=${req.user.id_adviser}
+    group by cases.id_case;`;
+*/
+let query_my =`
+        
+SELECT count(*) as nsectors, n.id_case , n.case_date,
+n.client_name, n.client_lastname,n.client_address, n.client_rut,n.status_name
 
-
-        inner join sectors
-        on sectors.id_sector=cs.id_sector
-        inner join incidents
-        on incidents.id_incident=c.id_incident
-
-        inner join damages
-        on damages.id_damage=cs.id_damage
-
-
-        where a.id_adviser=${req.user.id_adviser}
-        group by c.id_case;`;
-
+ from (select cs.id_sector,
+cs.id_case id_case ,DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date,
+clients.client_name as client_name, clients.client_lastname as client_lastname, clients.client_address as client_address, clients.client_rut as client_rut,status.status_name as status_name
+from c_d_s  as cs
+inner join cases
+    on cases.id_case=cs.id_case
+    inner join advisers
+    on advisers.id_adviser=cases.id_adviser
+    inner join status
+    on status.id_status=cases.id_status
+    inner join clients
+    on clients.id_client=cases.id_client
+    where advisers.id_adviser=${req.user.id_adviser}  group by cs.id_case,cs.id_sector
+    )as n
+    group by n.id_case;`;
 
         console.log("esta es la ctmm --------------"+query_my);
        
@@ -88,7 +88,6 @@ router.post('/cases',isAdmin, async (req, res) => {
     const searchresult   =   req.body.search_input;
     let searchField   =   req.body.search;
     if (searchField=='status_name'){searchField='id_status';}
-    console.log('resultados :                    '+searchresult  +'  '+ searchField+ '     '+ tableName );
     pool.query(sql,[req.user.id_adviser], (err, users) => {
         if(err) throw err;
         const numOfResults = users.length;
@@ -286,22 +285,13 @@ router.get('/edit',isLoggedIn, async(req, res)=>{
 });
 
 router.get('/sectors',isLoggedIn, async(req, res)=>{
+     // (select count(id_damage) from c_d_s where id_case=cs.id_case and id_sector=cs.id_sector) as ndamages 
     try{
-        let sql2=`      
-        SELECT
-	(select COUNT(c_d_s.id_damage) from c_d_s
-        inner join cases
-        on cases.id_case=c_d_s.id_case
-        inner join damages
-        on damages.id_damage=c_d_s.id_damage
-        inner join advisers
-        on advisers.id_adviser=cases.id_adviser
-        where advisers.id_adviser=a.id_adviser and cases.id_case=c.id_case and damages.id_damage=cs.id_damage) as ndamages,
-       
-        a.id_adviser, c.id_case, clients.client_name, sectors.sector_name, sectors.id_sector,
-        cs.damage_size, cs.sector_l_size,cs.sector_w_size,cs.sector_h_size,
-        clients.client_lastname, status.status_name, DATE_FORMAT(c.case_date, "%d/%l/%Y") case_date,
-        clients.client_address, clients.client_rut
+        let sql2=`SELECT
+ 
+        cs.id_case,s.sector_name, count(cs.id_damage) as ndamages,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.damage_size,
+        clients.client_name as client_name, clients.client_lastname as client_lastname, clients.client_address as client_address, clients.client_rut as client_rut
+      
 
 
         from cases c
@@ -320,19 +310,23 @@ router.get('/sectors',isLoggedIn, async(req, res)=>{
         inner join damages
         on damages.id_damage=cs.id_damage
 
-        inner join sectors
-        on sectors.id_sector=cs.id_sector
+        inner join sectors s
+        on s.id_sector=cs.id_sector
+
+        inner join dimentions d
+        on d.id_sector=cs.id_sector and d.id_case=c.id_case
+
         inner join incidents
         on incidents.id_incident=c.id_incident
 
 
         where cs.id_case=${req.query.id_case} AND a.id_adviser=${req.user.id_adviser}
-        group by c.id_case, cs.damage_size, sectors.sector_name, cs.sector_l_size, cs.sector_w_size,cs.sector_h_size, cs.id_damage, sectors.id_sector;`;
+group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.damage_size, cs.id_case; `;
+        
         let vcase    =   req.query.id_case;
         console.log("ACTION REPAIRS++++++++++++++++++++++++++++++++++++"+sql2)
-    
         const action_repairs = await pool.query(sql2);
-        console.log('CONSOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA. :'+action_repairs[0]['client_name']);
+       
         
         res.render('sectors/index',{action_repairs, vcase, client_data:{vaddress:action_repairs[0]['client_address'],vname:action_repairs[0]['client_name'], vlastname:action_repairs[0]['client_lastname']}});
     }
@@ -345,11 +339,12 @@ router.get('/sectors',isLoggedIn, async(req, res)=>{
 });
 
 router.get('/damages',isLoggedIn, async(req, res)=>{
-    try{  
+    try{ 
+        sql1="Select * from damages"; 
         let sql2=`      
         SELECT     
         damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
-        cs.damage_size, cs.damage_unit
+        si.size as damage_size, damages.damage_unit
 
         from cases c
         inner join advisers a
@@ -369,18 +364,24 @@ router.get('/damages',isLoggedIn, async(req, res)=>{
 
         inner join sectors
         on sectors.id_sector=cs.id_sector
+
+        inner join dimentions d
+        on d.id_sector=cs.id_sector and d.id_case=c.id_case
+        
         inner join incidents
         on incidents.id_incident=c.id_incident
+        inner join d_c_d_s si
+        on si.id_c_d_s=cs.id_c_d_s
 
 
-        where cs.id_case=${req.query.id_case} AND a.id_adviser=${req.user.id_adviser} and cs.id_sector=${req.query.id_sector}
-        group by cs.damage_unit,c.id_case, cs.damage_size, sectors.sector_name, cs.sector_l_size, cs.sector_w_size,cs.sector_h_size, cs.id_damage, sectors.id_sector;`;
+        where cs.id_case=${req.query.id_case} and a.id_adviser=${req.user.id_adviser} and cs.id_sector=${req.query.id_sector};`;
+    
         let vcase    =   req.query.id_case;
         console.log("ACTION REPAIRS++++++++++++++++++++++++++++++++++++"+sql2)
-    
+        const defaultDamages = await pool.query(sql1);
         const damages = await pool.query(sql2);
         
-        res.render('damages/index',{damages, vcase, sname:damages[0]['sector_name']});
+        res.render('damages/index',{damages, vcase, sname:damages[0]['sector_name'],defaultDamages});
     }
     catch(error){
         console.log(error);

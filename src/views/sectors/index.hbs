@@ -8,7 +8,7 @@
           <h4>Recintos en caso N° <b>{{vcase}}</b></h4>
           <p > <div class="sd">  <b>Nombre Asesor: </b>{{user.adviser_name}}&nbsp;{{user.adviser_lastname}}</div></p>
            <p > <div class="sd"> <b>Nombre Asegurado: </b>{{#client_data}}{{this.vname}} {{this.vlastname}}{{/client_data}}</div></p>
-           <p > <div class="sd"> <b>Dirección: </b>{{#client_data}}{{this.vname}} {{this.vaddress}}{{/client_data}}</div></p>
+           <p > <div class="sd"> <b>Dirección: </b>{{#client_data}}{{this.vaddress}}{{/client_data}}</div></p>
        
         </div>
         <div class="card-body" id="ttk">
@@ -23,11 +23,13 @@
                 {{#action_repairs as |ar|}}
                 <tr >   
                   <td><a href="../damages/?id_case={{ar.id_case}}&id_sector={{ar.id_sector}}"><i class="fas fa-edit"></i></a></td>         
-                    <td>{{sum @key 1}}</td><td>{{ar.sector_name}}</td><td>{{ar.sector_l_size}}</td> <td>{{ar.sector_w_size}}</td> <td>{{ar.sector_h_size}}</td><td>{{ar.ndamages}}</td>
-                    <td><a href="">Fotos</a></td><td>{{ar.shs}}</td>
+                    <td>{{sum @key 1}}</td><td>{{ar.sector_name}}</td>
                     
+                    <td>{{ar.sector_l_size}}</td> <td>{{ar.sector_w_size}}</td> <td>{{ar.sector_h_size}}</td><td>{{ar.ndamages}}</td>
+                    <td><a href="">Fotos</a></td><td>{{ar.shs}}</td>
+                    {{/action_repairs}}
                 </tr>
-                {{/action_repairs}}
+                
               </tbody>
             </table>
 
