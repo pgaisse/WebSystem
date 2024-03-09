@@ -110,3 +110,28 @@ font-size: 44px;
 .mb-3{
   text-align: left;
 }
+.form-select {
+
+    display:block;
+    height:32px;
+    width:100%;
+    margin: auto;
+    
+}
+#cap{
+  text-transform: capitalize;
+}
+select{
+  text-align: center;
+}
+
+tbody{
+  vertical-align: middle;
+  border-collapse: collapse;
+}
+.row{
+  width: auto;
+}
+.col{
+  width: auto;
+}

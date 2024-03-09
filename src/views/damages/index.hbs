@@ -1,8 +1,8 @@
 {{#if user}}
 
-<div class="container p-10">
+<div class="container">
   <div class="row">
-    <div class="col-md-10 mx-auto">
+    <div class="col mx-auto">
       <div class="card text-center">
         <div class="card-header" align="left">
           <h4>Daños en <b>{{sname}}</b></h4>
@@ -20,26 +20,30 @@
               <tbody>
                 {{#damages as |ar|}}
                 <tr >   
-                  <td><a href="/sectors/?id_case={{ar.id_case}}&id_sector={{ar.id_sector}}"><i class="fas fa-edit"></i></a></td>         
+                    <td><a href="/sectors/?id_case={{ar.id_case}}&id_sector={{ar.id_sector}}"><i class="fas fa-edit"></i></a></td>         
                     <td>{{sum @key 1}}</td><td>{{ar.damage_name}}</td><td>{{ar.damage_unit}}</td> <td>{{ar.damage_size}}</td><td><a href="">Fotos</a></td><td>{{ar.shs}}</td>
-                    
                 </tr>
                 {{/damages}}
-                
+                <tr>
+                 <form action="/signup" method="POST"></form>
+                    <td colspan="2"><a href="" onclick="bringForm();"><i class="fa-solid fa-plus"></i></a></td> 
+                    <td>
+                    <select class="form-select" aria-label=".form-select-lg example" id="cap">
+                    {{#each defaultDamages}}<option value="{{this.id_damage}}" selected="true">{{this.damage_name}}</option>{{/each}}
+                    </select></td> 
+                    <td><select class="form-select" aria-label=".form-select-lg example">
+                    {{#each defaultDamageunits}}<option value="{{this.damage_unit}}" selected="true" >{{this.damage_unit}}</option>{{/each}}
+                    </select></td>
+                     <td><input type="Number" id="unit"></td>
+                     <td>
+                      <label for="photo">Foto</label>
+                    <input class="form-control" type="file" name="photo" id="photo" image />
+                    </td>
+                  </form>
+                  </tr>
               </tbody>
-              
-            </table>
-          <div id="divformulario"></div>
-          <div class="mb-3">
-          <input type="hidden" id="defaultDamages" name="campoOculto" value={{defaultDamages}}>
-
-          <p><a href="" onclick="bringForm()"><i class="fa-solid fa-plus"></i> Nuevo daño</a></p>
-          <form action="/signup" method="POST">
-          <label for="formFile" class="form-label">Default file input example</label>
-          <input class="form-control" name="image" type="file" id="formFile">
-          <button type="submit">Upload</button>
-  </form>
-</div>
+             
+            </table>              
         </div>
       </div>
     </div>

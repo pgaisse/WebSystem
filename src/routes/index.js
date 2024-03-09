@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../database');
 const { isLoggedIn, isNLoggedIn, isAdmin} = require('../lib/auth');
 const { log } = require('handlebars');
+//const multer =require('multer');
 let temp_view='';
 let headerQuery1 =`SELECT cases.id_case, advisers.adviser_name,advisers.adviser_lastname, status.status_name,incidents.incident_code, DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date,
 clients.client_name ,clients.client_lastname, clients.client_rut, clients.client_address, budgets_damages_sectors.damage_size as dms, 
@@ -340,7 +341,8 @@ group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_si
 
 router.get('/damages',isLoggedIn, async(req, res)=>{
     try{ 
-        sql1="Select * from damages"; 
+        sql1="Select damage_name from damages"; 
+        sql3="Select damage_unit from damages group by damage_unit"; 
         let sql2=`      
         SELECT     
         damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
@@ -380,8 +382,10 @@ router.get('/damages',isLoggedIn, async(req, res)=>{
         console.log("ACTION REPAIRS++++++++++++++++++++++++++++++++++++"+sql2)
         const defaultDamages = await pool.query(sql1);
         const damages = await pool.query(sql2);
+        const defaultDamageunits  = await pool.query(sql3);
+
         
-        res.render('damages/index',{damages, vcase, sname:damages[0]['sector_name'],defaultDamages});
+        res.render('damages/index',{damages, vcase,sname:damages[0]['sector_name'],defaultDamages,defaultDamageunits});
     }
     catch(error){
         console.log(error);
