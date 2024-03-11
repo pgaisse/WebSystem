@@ -1,0 +1,18 @@
+DELIMITER //
+        DROP PROCEDURE IF EXISTS dataInsert;
+        CREATE PROCEDURE dataInsert(IN id_sector INT,
+        IN id_damage INT,
+        IN damage_size INT,
+        IN id_case INT)
+        BEGIN
+        INSERT INTO c_d_s(id_c_d_s,id_damage,id_case,id_sector)
+        VALUES (0,id_damage,id_case,id_sector);
+
+        SET @ultimo_id = LAST_INSERT_ID();
+
+        INSERT INTO d_c_d_s(id_d_c_d_s,id_c_d_s,size)
+        VALUES (0,@ultimo_id,damage_size);
+
+        END //
+
+DELIMITER ;

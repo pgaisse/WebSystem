@@ -9,6 +9,19 @@ const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
 const multer = require('multer');
 
+
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '../public/uploads'),
+  filename:  (req, file, cb) => {
+      cb(null, file.originalname);
+  }
+})
+const uploadImage = multer({
+  storage,
+  limits: {fileSize: 1000000}
+}).single('image');
+
+
 const { database } = require('./keys');
 
 // Intializations
@@ -113,7 +126,19 @@ app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use(multer({
-  dest:'public/uploads'
+  storage,
+  limits: {fileSize: 1000000},
+  dest:path.join(__dirname, 'public/uploads'),
+  fileFilter: (req, file,cb)=>{
+    const filetypes =/jpeg|png|jpg/
+    const minetype=filetypes.test(file.mimetype);
+    const extname=filetypes.test(path.extname(file.originalname))
+  if (minetype && extname){
+    return cb(null,true);
+  }
+  cb("error: el archivo debe ser una extensión válida");
+  }
+  
 
 }).single('image'));
 

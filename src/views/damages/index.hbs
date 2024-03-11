@@ -24,26 +24,38 @@
                     <td>{{sum @key 1}}</td><td>{{ar.damage_name}}</td><td>{{ar.damage_unit}}</td> <td>{{ar.damage_size}}</td><td><a href="">Fotos</a></td><td>{{ar.shs}}</td>
                 </tr>
                 {{/damages}}
-                <tr>
-                 <form action="/signup" method="POST"></form>
-                    <td colspan="2"><a href="" onclick="bringForm();"><i class="fa-solid fa-plus"></i></a></td> 
-                    <td>
-                    <select class="form-select" aria-label=".form-select-lg example" id="cap">
-                    {{#each defaultDamages}}<option value="{{this.id_damage}}" selected="true">{{this.damage_name}}</option>{{/each}}
-                    </select></td> 
-                    <td><select class="form-select" aria-label=".form-select-lg example">
-                    {{#each defaultDamageunits}}<option value="{{this.damage_unit}}" selected="true" >{{this.damage_unit}}</option>{{/each}}
-                    </select></td>
-                     <td><input type="Number" id="unit"></td>
-                     <td>
-                      <label for="photo">Foto</label>
-                    <input class="form-control" type="file" name="photo" id="photo" image />
-                    </td>
-                  </form>
-                  </tr>
+                 
               </tbody>
              
-            </table>              
+            </table>  
+            <br/> 
+            <table class="table" > 
+              <thead>
+                <tr align="center">
+                      <th>Daño</th><th></th><th>Cantidad</th><th>Subir Foto</th><th></th><th></th>  
+                </tr>
+              </thead>
+              <tbody >
+              <tr><h5>Añadir nuevo registro</h5></tr>
+                 
+                <form action="/damages" method="POST" enctype="multipart/form-data">
+                    <tr>            
+                        
+                        <td><select class="form-select" aria-label=".form-select-lg example" name="id_damage">
+                        {{#each defaultDamages}}{{this.id_damage}}<option value="{{this.id_damage}}"  selected="true">{{this.damage_name}} ({{this.damage_unit}})</option>{{/each}}
+                        </select></td> 
+                        <td></td>
+                        <td><input type="Number" id="damage_size" name="damage_size"></td>
+                        <td> <input type="file" name="image"></td>
+                        <input type="hidden" name="id_case" id="id_case" value="{{id_case}}">
+                        <input type="hidden"  name="id_sector"  id="id_sector" value="{{id_sector}}">
+                        <td colspan="2" style=""><button class="btn btn-success btn-block" type="submit" ><i class="fa-solid fa-check"></i></button></td> 
+                        
+                    </tr>
+                 </form>
+              </tbody>
+
+            </table>           
         </div>
       </div>
     </div>

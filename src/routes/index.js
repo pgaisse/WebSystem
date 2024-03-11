@@ -3,6 +3,10 @@ const router = express.Router();
 const pool = require('../database');
 const { isLoggedIn, isNLoggedIn, isAdmin} = require('../lib/auth');
 const { log } = require('handlebars');
+
+
+
+
 //const multer =require('multer');
 let temp_view='';
 let headerQuery1 =`SELECT cases.id_case, advisers.adviser_name,advisers.adviser_lastname, status.status_name,incidents.incident_code, DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date,
@@ -341,7 +345,7 @@ group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_si
 
 router.get('/damages',isLoggedIn, async(req, res)=>{
     try{ 
-        sql1="Select damage_name from damages"; 
+        sql1="Select damage_name, damage_unit, id_damage from damages"; 
         sql3="Select damage_unit from damages group by damage_unit"; 
         let sql2=`      
         SELECT     
@@ -378,14 +382,15 @@ router.get('/damages',isLoggedIn, async(req, res)=>{
 
         where cs.id_case=${req.query.id_case} and a.id_adviser=${req.user.id_adviser} and cs.id_sector=${req.query.id_sector};`;
     
-        let vcase    =   req.query.id_case;
-        console.log("ACTION REPAIRS++++++++++++++++++++++++++++++++++++"+sql2)
+        const vcase    =   req.query.id_case;
         const defaultDamages = await pool.query(sql1);
         const damages = await pool.query(sql2);
         const defaultDamageunits  = await pool.query(sql3);
+        const id_case=req.query.id_case;
+        const id_sector=req.query.id_sector;
 
         
-        res.render('damages/index',{damages, vcase,sname:damages[0]['sector_name'],defaultDamages,defaultDamageunits});
+        res.render('damages/index',{damages, vcase,sname:damages[0]['sector_name'],defaultDamages,defaultDamageunits,id_case,id_sector});
     }
     catch(error){
         console.log(error);
@@ -395,5 +400,63 @@ router.get('/damages',isLoggedIn, async(req, res)=>{
 
 });
 
+router.post('/damages', isLoggedIn,async (req,res)=>{
+    
+    try{ 
+        const id_case=req.body.id_case;
+        const id_sector=req.body.id_sector;
+        insert1=`CALL dataInsert(${req.body.id_sector},${req.body.id_damage},${req.body.damage_size},${req.body.id_case});`
+        console.log("dsssssssssssssssssssssssssssssssssssssssss :"+ req.file.path);
+        const in1  = await pool.query(insert1);
+
+        sql1="Select damage_name, id_damage  from damages"; 
+        sql3="Select damage_unit from damages group by damage_unit"; 
+        let sql2=` 
+        SELECT     
+        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
+        si.size as damage_size, damages.damage_unit
+
+        from cases c
+        inner join advisers a
+        on a.id_adviser=c.id_adviser
+
+        inner join clients
+        on clients.id_client=c.id_client
+
+        inner join status
+        on status.id_status=c.id_status
+
+        inner join c_d_s as cs
+        on cs.id_case=c.id_case
+
+        inner join damages
+        on damages.id_damage=cs.id_damage
+
+        inner join sectors
+        on sectors.id_sector=cs.id_sector
+
+        inner join dimentions d
+        on d.id_sector=cs.id_sector and d.id_case=c.id_case
+        
+        inner join incidents
+        on incidents.id_incident=c.id_incident
+        inner join d_c_d_s si
+        on si.id_c_d_s=cs.id_c_d_s
+
+
+        where cs.id_case=${req.body.id_case} and a.id_adviser=${req.user.id_adviser} and cs.id_sector=${req.body.id_sector};`;
+        console.log("CONSOLA Y LA CTM : "+req.query.id_case);
+        const vcase    =   req.query.id_case;
+        const defaultDamages = await pool.query(sql1);
+        const damages = await pool.query(sql2);
+        const defaultDamageunits  = await pool.query(sql3);
+        
+        res.render('damages/index',{damages, vcase,sname:damages[0]['sector_name'],defaultDamages,defaultDamageunits,id_case,id_sector});
+    }
+    catch(error){
+        console.log(error);
+
+    }
+})
 
 module.exports = router;
