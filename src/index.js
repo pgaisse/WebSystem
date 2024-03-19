@@ -7,21 +7,35 @@ const passport = require('passport');
 const flash = require('connect-flash');
 const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
+
+const uuid= require('uuid');
+const unicid=uuid.v4();
+
+// MULTER
 const multer = require('multer');
-
-
+const multer2 = require('multer');
 const storage = multer.diskStorage({
-  destination: path.join(__dirname, '../public/uploads'),
+  destination:  path.join(__dirname, '/public/uploads'),
   filename:  (req, file, cb) => {
-      cb(null, file.originalname);
+    file.fieldname==="image"?cb(null, uuid.v4()+path.extname(file.originalname)):Error("Tipo de archivo no soportado"), false;
+    file.fieldname==="image1"?cb(null, uuid.v4()+path.extname(file.originalname)):Error("Tipo de archivo no soportado"), false;
+    file.fieldname==="image2"?cb(null, uuid.v4()+path.extname(file.originalname)):Error("Tipo de archivo no soportado"), false;
   }
 })
-const uploadImage = multer({
+
+
+/*
+const uploadImage1 = multer({
   storage,
   limits: {fileSize: 1000000}
-}).single('image');
+}).single('image1');
+const uploadImage2 = multer({
+  storage,
+  limits: {fileSize: 1000000}
+}).single('image2');
 
-
+*/
+///////////////////////////////////////////
 const { database } = require('./keys');
 
 // Intializations
@@ -121,14 +135,16 @@ app.engine('hbs', exphbs.engine({
 }))
 app.set('view engine', '.hbs');
 
+
+
 // Middlewares
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use(multer({
   storage,
-  limits: {fileSize: 1000000},
-  dest:path.join(__dirname, 'public/uploads'),
+  limits: {fileSize: 10000000},
+  dest:path.join(__dirname, '/public/uploads'),
   fileFilter: (req, file,cb)=>{
     const filetypes =/jpeg|png|jpg/
     const minetype=filetypes.test(file.mimetype);
@@ -140,7 +156,7 @@ app.use(multer({
   }
   
 
-}).single('image'));
+}).fields([{ name: 'image', maxCount: 1 }, { name: 'image1', maxCount: 1 },{ name: 'image2', maxCount: 1 }]));
 
 app.use(session({
   secret: 'faztmysqlnodemysql',
@@ -167,6 +183,7 @@ app.use('/links', require('./routes/links'));
 // Public
 app.use(express.static(path.join(__dirname, 'public/style-1')));
 app.use(express.static(path.join(__dirname, 'js')));
+app.use(express.static(path.join(__dirname, '/public/uploads')));
 
 // Starting
 app.listen(app.get('port'), () => {

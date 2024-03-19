@@ -1,5 +1,13 @@
 {{#if user}}
 
+
+
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.js"></script>
 <div class="container">
   <div class="row">
     <div class="col mx-auto">
@@ -20,8 +28,28 @@
               <tbody>
                 {{#damages as |ar|}}
                 <tr >   
-                    <td><a href="/sectors/?id_case={{ar.id_case}}&id_sector={{ar.id_sector}}"><i class="fas fa-edit"></i></a></td>         
-                    <td>{{sum @key 1}}</td><td>{{ar.damage_name}}</td><td>{{ar.damage_unit}}</td> <td>{{ar.damage_size}}</td><td><a href="">Fotos</a></td><td>{{ar.shs}}</td>
+                    <td><a href="#"><i class="fas fa-edit"></i></a></td>         
+                    <td>{{sum @key 1}}</td>
+                    <td>{{ar.damage_name}}</td>
+                    <td>{{ar.damage_unit}}</td>
+                    <td>{{ar.damage_size}}</td>
+                  <td>
+                    
+                      <div class="galeria">
+                          
+                        {{#if damage_image1}}                 
+                        <img src="/thumb_{{damage_image1}}" data-full-image="/{{damage_image1}}" alt="Imagen 1" class="miniatura" id="imagebox1">
+                        {{/if}}
+                        {{#if damage_image2}}
+                        <img src="/thumb_{{damage_image2}}" data-full-image="/{{damage_image2}}" alt="Imagen 2" class="miniatura" id="imagebox2">                        
+                        {{/if}}
+                        {{#if damage_image3}}
+                        <img src="/thumb_{{damage_image3}}" data-full-image="/{{damage_image3}}" alt="Imagen 3" class="miniatura" id="imagebox3">
+                        {{/if}}
+                        <!-- Añade más imágenes según sea necesario -->
+
+                      </div>
+                  </td>
                 </tr>
                 {{/damages}}
                  
@@ -29,33 +57,72 @@
              
             </table>  
             <br/> 
-            <table class="table" > 
+            <div id="imagenCompletaContenedor" class="imagen-completa-contenedor" style="display: none;">
+            
+            <img src="" id="imagenCompleta" class="imagen-completa">
+          </div>
+            <h5>Añadir nuevo registro</h5>
+            <table class="table" style="text-align: center;" > 
               <thead>
-                <tr align="center">
+                <tr >
                       <th>Daño</th><th></th><th>Cantidad</th><th>Subir Foto</th><th></th><th></th>  
                 </tr>
               </thead>
-              <tbody >
-              <tr><h5>Añadir nuevo registro</h5></tr>
+              <tbody style="text-align: center;">
                  
                 <form action="/damages" method="POST" enctype="multipart/form-data">
                     <tr>            
+                        
+
+
+
                         
                         <td><select class="form-select" aria-label=".form-select-lg example" name="id_damage">
                         {{#each defaultDamages}}{{this.id_damage}}<option value="{{this.id_damage}}"  selected="true">{{this.damage_name}} ({{this.damage_unit}})</option>{{/each}}
                         </select></td> 
                         <td></td>
-                        <td><input type="Number" id="damage_size" name="damage_size"></td>
-                        <td> <input type="file" name="image"></td>
+                        <td><input type="Number" value="0" id="damage_size" name="damage_size"></td>
+                       
+                        <td> 
+                        <div >  
+                        <label for="files" class="custom-file-upload col-8"><i class="fa-solid fa-image" ></i></label>
+                        <input id='files' type="file" style="visibility:hidden;" name="image" accept="image/*">
+
+                        <label for="files1" class="custom-file-upload col-8"><i class="fa-solid fa-image" ></i></label>
+                        <input id='files1' type="file" style="visibility:hidden;" name="image1" accept="image/*">
+                        
+                        <label for="files2" class="custom-file-upload col-8" ><i class="fa-solid fa-image" ></i></label>
+                        <input id='files2' type="file" style="visibility:hidden;" name="image2" accept="image/*">
+                        </div>
+                        </td>
                         <input type="hidden" name="id_case" id="id_case" value="{{id_case}}">
                         <input type="hidden"  name="id_sector"  id="id_sector" value="{{id_sector}}">
-                        <td colspan="2" style=""><button class="btn btn-success btn-block" type="submit" ><i class="fa-solid fa-check"></i></button></td> 
+                        <td colspan="2" style=""><button class="btn btn-success btn-block" type="submit" id="upload" disabled><i class="fa-solid fa-check"></i></button></td> 
                         
                     </tr>
                  </form>
               </tbody>
 
-            </table>           
+            </table>    
+            
+
+
+
+
+
+
+ <div class="container">
+         
+         
+         
+      </div>
+
+
+
+
+
+
+                 
         </div>
       </div>
     </div>

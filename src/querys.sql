@@ -236,3 +236,24 @@ values
 (0,16,107),
 (0,17,32);
 select *from d_c_d_s;
+
+insert INTO damage_images(id_damage_images,id_d_c_d_s, image1, image2, image3)
+values
+(0,1,'img11','img12','img1wd'),
+(0,2,'img21','img23','img2dw'),
+(0,3,'img31','img34','img3dw'),
+(0,4,'img41','img45','imgfr4'),
+(0,5,'img51','img5w','imggt5'),
+(0,6,'img61','imge6','imghy6'),
+(0,7,'img71','imgw7','img457'),
+(0,8,'img81','imge8','img3218'),
+(0,9,'img91','imgw9','img3r9'),
+(0,10,'img101','img1r0','img1rre0'),
+(0,11,'img111','img1r1','img1eqw1'),
+(0,12,'img121','img1r2','img12ewq'),
+(0,13,'img131','img1e3','img13e3'),
+(0,14,'img141','img1w4','img14ewq'),
+(0,15,'img151','img1q5','img15ewq'),
+(0,16,'img161','img1w6','img16eqw'),
+(0,17,'img171','img1e7','img17ewq');
+select *from d_c_d_s;

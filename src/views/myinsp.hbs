@@ -1,30 +1,28 @@
-<div class="container p-4">
+<div class="container">
     <div class="row">
-        <div class="col-md-8 mx-auto">
+        <div class="col mx-auto">
             <div class="card text-center">
                 <div class="card-header" align="left">
-                <h4>Casos asignados a <b>{{user.adviser_name}} {{user.adviser_lastname}}</b> <b>{{sname}}</b></h4>
+                    <h4>Casos asignados a <b>{{user.adviser_name}} {{user.adviser_lastname}}</b> <b>{{sname}}</b></h4>
 
             
                 </div>
-                <div class="card-body" align="left">
-                    <table class="table table-striped" id="tabletable">  
-                    <thead>
-                    <tr><th><i class="fas fa-bolt"></i></th><th>N°</th><th>Estado</th><th>Recintos</th><th>Fecha caso</th><th>Nombre asegurado</th><th>Rut Asegurado</th><th>Dirección</th></tr>       
-                    </thead>
+                <div class="card-body">
+                    <table class="table"  id="table" >  
+                        <thead>
+                            <tr><th><i class="fas fa-bolt"></i></th><th>N°</th><th>Estado</th><th>Recintos</th><th>Fecha caso</th><th>Nombre asegurado</th><th>Rut Asegurado</th><th>Dirección</th></tr>       
+                        </thead>
                         <tbody>
-                        {{#each cases as |tr|}}
-                        <tr>
-                            <td><a href="sectors/?id_case={{tr.id_case}}"><i class="fas fa-edit"></i></a></td>
-                            <td>{{tr.id_case}}</td><td>{{tr.status_name}}</td><td>{{nsectors}}</td><td>{{tr.case_date}}</td><td>{{tr.client_name}}&nbsp;{{tr.client_lastname}}</td><td>{{tr.client_rut}}</td><td>{{tr.client_address}}</td>       
-                        </tr>
-                        {{/each}}
-                            </tr>
+                            {{#each cases as |tr|}}
+                                <tr>
+                                    <td><a href="sectors/?id_case={{tr.id_case}}"><i class="fas fa-edit"></i></a></td>
+                                    <td>{{tr.id_case}}</td><td>{{tr.status_name}}</td><td>{{nsectors}}</td><td>{{tr.case_date}}</td><td>{{tr.client_name}}&nbsp;{{tr.client_lastname}}</td><td>{{tr.client_rut}}</td><td>{{tr.client_address}}</td>       
+                                </tr>
+                            {{/each}}
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-
     </div>
 </div>

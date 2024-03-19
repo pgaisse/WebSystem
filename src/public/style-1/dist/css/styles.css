@@ -3543,7 +3543,6 @@ textarea.form-control-lg {
 .btn-group-vertical > .btn-check:focus + .btn,
 .btn-group-vertical > .btn:hover,
 .btn-group-vertical > .btn:focus,
-.btn-group-vertical > .btn:active,
 .btn-group-vertical > .btn.active {
   z-index: 1;
 }
@@ -3814,7 +3813,7 @@ textarea.form-control-lg {
   color: var(--bs-navbar-active-color);
 }
 .navbar-nav .dropdown-menu {
-  position: static;
+  position: fixed;
 }
 
 .navbar-text {
@@ -4258,7 +4257,7 @@ textarea.form-control-lg {
   --bs-card-height: ;
   --bs-card-color: ;
   --bs-card-bg: #fff;
-  opacity: 80%;
+  opacity: 100%;
   --bs-card-img-overlay-padding: 1rem;
   --bs-card-group-margin: 0.75rem;
   position: relative;
@@ -4298,7 +4297,7 @@ textarea.form-control-lg {
 
 .card-body {
   flex: 1 1 auto;
-  opacity: 80%;
+  opacity: 100%;
   padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
   color: var(--bs-card-color);
 }
@@ -11041,7 +11040,7 @@ body {
   padding-left: 0;
   height: 100px;
   z-index: 1039;
-  opacity: 90%;
+  opacity: 100%;
 }
 .sb-topnav .navbar-brand {
   width: 225px;
