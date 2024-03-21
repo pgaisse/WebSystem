@@ -141,8 +141,8 @@ router.post('/cases',isAdmin, async (req, res) => {
                 console.log(searchField+' no encontrado');
             }
             else{
-                const fields = Object.keys(users[0])
-                res.render('cases', {cases:users, campos:fields ,page, iterator, endingLink, numberOfPages});
+                //const fields = Object.keys(users[0])
+                res.render('cases', {cases:users, campos:'fields' ,page, iterator, endingLink, numberOfPages});
             }
             
             
@@ -349,7 +349,8 @@ router.get('/damages',isLoggedIn, async(req, res)=>{
         let sql2=`      
         SELECT     
         damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
-        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit
+        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
+        id_damage_images
 
         from cases c
         inner join advisers a
@@ -432,7 +433,8 @@ router.post('/damages', isLoggedIn,async (req,res)=>{
         let sql2=` 
         SELECT     
         damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
-        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit
+        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit, cs.id_c_d_s, 
+        im.id_damage_images
 
         from cases c
         inner join advisers a
@@ -489,4 +491,117 @@ router.post('/damages', isLoggedIn,async (req,res)=>{
     }
 })
 
+
+router.get('/delreg',isLoggedIn,async(req,res)=>{
+    try{
+    const adviser= req.user.id_adviser;
+    const id_case=req.query.id_case;
+    const id_c_d_s=req.query.id_c_d_s;
+    const id_damage_images=req.query.id_damage_images;
+    const id_sector=req.query.id_sector;
+
+    let del=`DELETE FROM c_d_s where id_c_d_s=${id_c_d_s} and id_case=(select cases.id_case from cases where cases.id_adviser=${adviser} and cases.id_case=${id_case})`;
+    console.log(del)
+    const query= await pool.query(del);
+    sql1="Select damage_name, damage_unit, id_damage from damages"; 
+    sql3="Select damage_unit from damages group by damage_unit"; 
+    let sql2=`      
+    SELECT     
+    damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
+    si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
+    id_damage_images
+
+    from cases c
+    inner join advisers a
+    on a.id_adviser=c.id_adviser
+
+    inner join clients
+    on clients.id_client=c.id_client
+
+    inner join status
+    on status.id_status=c.id_status
+
+    inner join c_d_s as cs
+    on cs.id_case=c.id_case
+
+    inner join damages
+    on damages.id_damage=cs.id_damage
+
+    inner join sectors
+    on sectors.id_sector=cs.id_sector
+
+    inner join dimentions d
+    on d.id_sector=cs.id_sector and d.id_case=c.id_case
+
+    
+    inner join incidents
+    on incidents.id_incident=c.id_incident
+
+    inner join d_c_d_s si
+    on si.id_c_d_s=cs.id_c_d_s
+
+    inner join damage_images im
+    on im.id_d_c_d_s=si.id_d_c_d_s
+
+
+    where cs.id_case=${req.query.id_case} and a.id_adviser=${req.user.id_adviser} and cs.id_sector=${req.query.id_sector};`;
+
+    console.log(sql2)
+    const vcase    =   req.query.id_case;
+    const defaultDamages = await pool.query(sql1);
+    const damages = await pool.query(sql2);
+    const defaultDamageunits  = await pool.query(sql3);
+        res.render('damages/index',{damages,dir:__dirname, vcase,sname:damages[0]['sector_name'],defaultDamages,defaultDamageunits,id_case,id_sector});
+    }
+    catch{
+
+
+        let sql2=`SELECT
+ 
+        cs.id_case,s.sector_name, count(cs.id_damage) as ndamages,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.damage_size,
+        clients.client_name as client_name, clients.client_lastname as client_lastname, clients.client_address as client_address, clients.client_rut as client_rut
+      
+
+
+        from cases c
+        inner join advisers a
+        on a.id_adviser=c.id_adviser
+
+        inner join clients
+        on clients.id_client=c.id_client
+
+        inner join status
+        on status.id_status=c.id_status
+
+        inner join c_d_s as cs
+        on cs.id_case=c.id_case
+
+        inner join damages
+        on damages.id_damage=cs.id_damage
+
+        inner join sectors s
+        on s.id_sector=cs.id_sector
+
+        inner join dimentions d
+        on d.id_sector=cs.id_sector and d.id_case=c.id_case
+
+        inner join incidents
+        on incidents.id_incident=c.id_incident
+
+
+        where cs.id_case=${req.query.id_case} AND a.id_adviser=${req.user.id_adviser}
+group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.damage_size, cs.id_case; `;
+        
+        let vcase    =   req.query.id_case;
+        console.log("ACTION REPAIRS++++++++++++++++++++++++++++++++++++"+sql2)
+        const action_repairs = await pool.query(sql2);
+       
+        
+        res.render('sectors/index',{action_repairs, vcase, client_data:{vaddress:action_repairs[0]['client_address'],vname:action_repairs[0]['client_name'], vlastname:action_repairs[0]['client_lastname']}});
+  
+    }
+
+})
+
 module.exports = router;
+

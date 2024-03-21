@@ -238,13 +238,18 @@ body{
   justify-content: center; /* Centra horizontalmente */
   align-items: center; /* Centra verticalmente */
   /* Estilos adicionales para el contenedor */
+  overflow: auto;
   opacity: 100%;
 }
 
 .imagen-completa {
-  max-width: 100%; /* Ajusta al tamaño deseado, con espacio alrededor */
-  max-height: 100%; /* Limita la altura para asegurar que quepa en la pantalla */
+  max-width: 90%; /* Ajusta al tamaño deseado, con espacio alrededor */
+  max-height: 90%; /* Limita la altura para asegurar que quepa en la pantalla */
   opacity: 100%;
+  overflow: 100px;
+  margin-top: 20%;
+  margin-bottom: 20%;
+
 }
 #files,#files1,#files2 {
   padding: 2px;

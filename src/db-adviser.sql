@@ -135,22 +135,22 @@ CREATE TABLE IF NOT EXISTS `cub`.`cases` (
   CONSTRAINT `fk_cases_status1`
     FOREIGN KEY (`id_status`)
     REFERENCES `cub`.`status` (`id_status`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_cases_advisers1`
     FOREIGN KEY (`id_adviser`)
     REFERENCES `cub`.`advisers` (`id_adviser`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_cases_clients1`
     FOREIGN KEY (`id_client`)
     REFERENCES `cub`.`clients` (`id_client`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_cases_incidents1`
     FOREIGN KEY (`id_incident`)
     REFERENCES `cub`.`incidents` (`id_incident`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -168,12 +168,12 @@ CREATE TABLE IF NOT EXISTS `cub`.`damages_repairs` (
   CONSTRAINT `fk_damages_has_repairs_damages1`
     FOREIGN KEY (`id_damage`)
     REFERENCES `cub`.`damages` (`id_damage`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_damages_has_repairs_repairs1`
     FOREIGN KEY (`id_repair`)
     REFERENCES `cub`.`repairs` (`id_repair`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION);
 
 
@@ -192,17 +192,17 @@ CREATE TABLE IF NOT EXISTS `cub`.`c_d_s` (
   CONSTRAINT `fk_cases_has_damages_damages1`
     FOREIGN KEY (`id_damage`)
     REFERENCES `cub`.`damages` (`id_damage`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_c_d_sectors1`
     FOREIGN KEY (`id_sector`)
     REFERENCES `cub`.`sectors` (`id_sector`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_c_d_cases1`
     FOREIGN KEY (`id_case`)
     REFERENCES `cub`.`cases` (`id_case`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -224,12 +224,12 @@ CREATE TABLE IF NOT EXISTS `cub`.`dimentions` (
   CONSTRAINT `fk_dimentions_sectors1`
     FOREIGN KEY (`id_sector`)
     REFERENCES `cub`.`sectors` (`id_sector`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_dimentions_cases1`
     FOREIGN KEY (`id_case`)
     REFERENCES `cub`.`cases` (`id_case`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS `cub`.`d_c_d_s` (
   CONSTRAINT `fk_d_c_d_s_c_d_s1`
     FOREIGN KEY (`id_c_d_s`)
     REFERENCES `cub`.`c_d_s` (`id_c_d_s`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -266,7 +266,7 @@ CREATE TABLE IF NOT EXISTS `cub`.`damage_images` (
   CONSTRAINT `fk_damage_images_d_c_d_s1`
     FOREIGN KEY (`id_d_c_d_s`)
     REFERENCES `cub`.`d_c_d_s` (`id_d_c_d_s`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 

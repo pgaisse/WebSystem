@@ -28,7 +28,7 @@
               <tbody>
                 {{#damages as |ar|}}
                 <tr >   
-                    <td><a href="#"><i class="fas fa-edit"></i></a></td>         
+                    <td> <a href="/delreg?id_c_d_s={{ar.id_c_d_s}}&id_case={{ar.id_case}}&id_sector={{ar.id_sector}}"><i class="fa-solid fa-trash-can"></i></a></td>         
                     <td>{{sum @key 1}}</td>
                     <td>{{ar.damage_name}}</td>
                     <td>{{ar.damage_unit}}</td>
