@@ -1,56 +1,87 @@
+
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.js"></script>
+
 <div class="container p-4" >
     <div class="row">
         <div class="col-md-10 mx-auto">
             <div class="card text-center">
                 <div class="card-body" align="left">
+                    <h4>Lista de Casos</h4>
+
+                     <button class="btn btn-success btn-block" id="toggleButton">Buscar</button>
+            <br/> 
     
+<div id="form" style="display:none;">
 
-        <form action="/cases" method="POST" id="form_submit" >  
-            <div class="row" >
-                <div class="col">
-                    <select class="select" name="search" id="search" onchange="generatedatafield();">
-                            {{#each campos}} <option value={{this}}>{{this}}</option>{{/each}}
-                    </select>
-                </div>
-
-                <div class="col">
-                    <input class="search_input" id="search_input" name="search_input" type="search" />
-                    <button class="btn btn-primary"> <i class="fas fa-search"></i></button>
-                </div>
+<table>
+        <form action="/cases" method="POST" id="form_submit" > 
+        <tr><select class="form-control" name="search" id="search" onchange="generatedatafield();">
+                            {{#each campos as |n|}}      
+                                              
+                                <option value="{{n.campos_en}}">{{n.campos_sp}}</option>      
+                                {{/each }}                        
+                            
+                    </select></tr>                
                     
-                    <input type="hidden" name="table_name" id="table_name", value="advisers" class="form-control">                
-            </div>
+                <tr>{{#each statusFields}}
+                    <!-- Para cada elemento del array, crea un campo oculto -->
+                    <input type="hidden" name="status[]" id="status[]" value="{{this.status_name}}">
+                {{/each}}</tr>
+                <tr>
+                   <input class="form-control" id="search_input" name="search_input" type="search" />
+                </tr>
+                <tr>
+                     <button class="btn btn-success btn-block"  ><i class="fas fa-search"></i></button>
+                </tr>
+
+                
+                    
+                     <input type="hidden" name="table_name" id="table_name", value="advisers" class="form-control">   
+                     
+            
+                    
+                    <tr>&nbsp;</tr>   
+                    <tr>&nbsp;</tr>         
+            
         </form>
         
+</table>
+</div>
 
 
-
-<hr class="hr" />
 
 
                      <table class="table table-hover" id="tabletable">
+
                         <thead>
-                             <tr><th> ID</th> <th>Status</th> <th>Fecha del caso</th> <th>Asesor</th><th>#Siniestro</th><th>Rut prop</th><th>Dirección</th></tr>
+                             <tr><th><i class="fa-solid fa-bolt"></i></th><th> ID</th> <th>Status</th> <th>Fecha del caso</th> <th>Asesor</th><th>#Siniestro</th><th>Rut prop</th><th>Dirección</th></tr>
                        
                         </thead>
                         <tbody>
                         {{#each cases}}
-                                <tr><td>#{{this.id_case}}</td><td>{{this.status_name}}</td><td>{{this.case_date}}</td>
+                                <tr><td><a href="#"><i class="fa-solid fa-glasses"></i></i></a></td><td>#{{this.id_case}}</td><td>{{this.status_name}}</td><td>{{this.case_date}}</td>
                                 <td>{{this.adviser_name }} &nbsp; {{this.adviser_lastname }}</td>
                                 <td>#{{this.incident_code}}</td><td>{{this.client_rut}}</td><td>{{this.client_address}}</td></tr>
                         {{/each}}
                         </tbody>
                     </table>
+
+                    
                     <nav aria-label="...">
-  <ul class="pagination">
-    <li class="page-item ">
-      <a class="page-link" href="/cases/?page={{#rest page}}{{/rest}}" tabindex="-1" aria-disabled="false">Previous</a>
-    </li>
-    <li class="page-item">
-      <a class="page-link" href="/cases/?page={{#sum page numberOfPages}}{{/sum}}">Next</a>
-    </li>
-  </ul>
-</nav>
+                    <ul class="pagination">
+                        <li class="page-item ">
+                        <a class="page-link" href="/cases/?page={{#rest page}}{{/rest}}" tabindex="-1" aria-disabled="false">Previous</a>
+                        </li>
+                        <li class="page-item">
+                        <a class="page-link" href="/cases/?page={{#sum page numberOfPages}}{{/sum}}">Next</a>
+                        </li>
+                    </ul>
+                    </nav>
                 </div>
             </div>
         </div>

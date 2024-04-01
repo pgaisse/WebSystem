@@ -182,7 +182,7 @@ CREATE TABLE IF NOT EXISTS `cub`.`damages_repairs` (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `cub`.`c_d_s` (
   `id_c_d_s` INT NOT NULL AUTO_INCREMENT,
-  `id_damage` INT(11) NOT NULL,
+  `id_damage` INT(11),
   `id_sector` INT(11) NOT NULL,
   `id_case` INT(11) NOT NULL,
   INDEX `fk_cases_has_damages_damages1_idx` (`id_damage` ASC) VISIBLE,
@@ -212,10 +212,13 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `cub`.`dimentions` (
   `id_dimention` INT NOT NULL AUTO_INCREMENT,
-  `damage_size` DECIMAL(19,2) NOT NULL,
   `sector_w_size` DECIMAL(19,2) NOT NULL,
   `sector_l_size` DECIMAL(19,2) NOT NULL,
   `sector_h_size` DECIMAL(19,2) NOT NULL,
+
+  `img1` VARCHAR(200) NOT NULL,
+  `img2` VARCHAR(200) NOT NULL,
+
   `id_sector` INT(11) NOT NULL,
   `id_case` INT NOT NULL,
   PRIMARY KEY (`id_dimention`),

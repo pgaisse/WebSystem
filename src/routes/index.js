@@ -7,278 +7,182 @@ const sharp = require('sharp');
 
 
 //const multer =require('multer');
-let temp_view='';
-let headerQuery1 =`SELECT cases.id_case, advisers.adviser_name,advisers.adviser_lastname, status.status_name,incidents.incident_code, DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date,
-clients.client_name ,clients.client_lastname, clients.client_rut, clients.client_address, budgets_damages_sectors.damage_size as dms, 
-budgets_damages_sectors.sector_w_size as sws, budgets_damages_sectors.sector_l_size as sls, budgets_damages_sectors.sector_h_size as shs `;
 
 
-
-
-let headerQuery2 =`SELECT budgets_damages_sectors.id_budget_damage_sector as ids,cases.id_case,incidents.incident_code, damages.damage_name, sectors.sector_name, budgets_damages_sectors.damage_size as dms, 
-budgets_damages_sectors.sector_w_size as sws, budgets_damages_sectors.sector_l_size as sls, budgets_damages_sectors.sector_h_size as shs,clients.client_name ,clients.client_lastname,
-clients.client_rut, clients.client_address, advisers.adviser_name, advisers.adviser_lastname, damages_repairs.id_damage_repair, repairs.id_repair `;
 
 
 
 
 router.get('/', async (req, res) => {
-    res.render('index');
-});
-
-
-
-router.get('/myinsp',isLoggedIn, async (req, res) => {
-    
     try{
-       /* let query_my =`
-        
-	select status.status_name,count(c_d_s.id_sector)as nsectors ,cases.id_case,DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date, clients.client_name, clients.client_lastname, clients.client_address, clients.client_rut from c_d_s 
-    inner join cases
-    on cases.id_case=c_d_s.id_case
-    inner join advisers
-    on advisers.id_adviser=cases.id_adviser
-    inner join status
-    on status.id_status=cases.id_status
-    inner join clients
-    on clients.id_client=cases.id_client
-    where advisers.id_adviser=${req.user.id_adviser}
-    group by cases.id_case;`;
-*/
-let query_my =`
-        
-SELECT count(*) as nsectors, n.id_case , n.case_date,
-n.client_name, n.client_lastname,n.client_address, n.client_rut,n.status_name
-
- from (select cs.id_sector,
-cs.id_case id_case ,DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date,
-clients.client_name as client_name, clients.client_lastname as client_lastname, clients.client_address as client_address, clients.client_rut as client_rut,status.status_name as status_name
-from c_d_s  as cs
-inner join cases
-    on cases.id_case=cs.id_case
-    inner join advisers
-    on advisers.id_adviser=cases.id_adviser
-    inner join status
-    on status.id_status=cases.id_status
-    inner join clients
-    on clients.id_client=cases.id_client
-    where advisers.id_adviser=${req.user.id_adviser}  group by cs.id_case,cs.id_sector
-    )as n
-    group by n.id_case;`;
-
-        console.log("esta es la ctmm --------------"+query_my);
-       
-        const cases = await pool.query(query_my);
-        res.render('myinsp',{cases});
+        res.render('index');
     }
     catch(error){
-        console.error('Error en la consulta:', error);
-
+        res.render('index');
     }
-
-
     
 });
 
 
 
+router.get('/myinsp',isLoggedIn, async (req, res) => {    
+    try{     
+        const showCases=`SELECT 
+        (SELECT COUNT(*) AS total_sectores
+        FROM (
+            SELECT cs2.id_sector
+            FROM c_d_s cs2
+            INNER JOIN cases c2 ON c2.id_case=cs2.id_case
+            WHERE c2.id_adviser=${req.user.id_adviser} AND cs2.id_case=cs.id_case
+            GROUP BY cs2.id_sector
+        ) AS sectores_agrupados) as nsectors, 
+        cs.id_case, 
+        cases.case_date,
+        clients.client_name, 
+        clients.client_lastname,
+        clients.client_address, 
+        clients.client_rut,
+        status.status_name
+        from c_d_s  as cs
+        inner join cases
+        on cases.id_case=cs.id_case
+        inner join advisers
+        on advisers.id_adviser=cases.id_adviser
+        inner join status
+        on status.id_status=cases.id_status
+        inner join clients
+        on clients.id_client=cases.id_client
+        where advisers.id_adviser=${req.user.id_adviser}
+        group by cs.id_case;`;
+        console.log(showCases);
+        const results= await pool.query(showCases);
+        const queryCases=results;
+        res.render('myinsp',{cases:queryCases});
+    }
+    catch(error){
+        
+        req.flash('message', 'Ocurrió un error en la consulta');
+        console.error('Error en la consulta:', error);
+        res.redirect('myinsp');
 
-const resultsPerPage = 10;
-
+    }    
+});
 
 router.post('/cases',isAdmin, async (req, res) => {
-    let sql = 'SELECT * FROM cases ';
-    const tableName     = req.body.table_name;
-    const searchresult   =   req.body.search_input;
-    let searchField   =   req.body.search;
-    if (searchField=='status_name'){searchField='id_status';}
-    pool.query(sql,[req.user.id_adviser], (err, users) => {
-        if(err) throw err;
-        const numOfResults = users.length;
-        const numberOfPages = Math.ceil(numOfResults / resultsPerPage);
-        let page = req.query.page ? Number(req.query.page) : 1;
-        if(page > numberOfPages){
-            res.redirect('/?page='+encodeURIComponent(numberOfPages));
-        }else if(page < 1){
-            res.redirect('/?page='+encodeURIComponent('1'));
+    try{
+        const value         =   req.body.search_input;
+        const  column       =   req.body.search;
+        const table         =   column;
+        const table2        =   table.split('_');
+        let table3        ="";
+        if (table.includes('id')){
+            table3=table2[1];
+            if (table3[table3.length-1]!='s'){
+                table3=table3+'s';
+            }
         }
-        //Determine the SQL LIMIT starting number
-        const startingLimit = (page - 1) * resultsPerPage;
-        //Get the relevant number of POSTS for this starting page
-        sql = `SELECT advisers.adviser_name ,advisers.adviser_lastname, cases.id_case, status.status_name, DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date,
-        clients.client_name ,clients.client_lastname, clients.client_rut, clients.client_address, incidents.incident_code  FROM cases
-        INNER JOIN cases_status
-        ON cases_status.id_case=cases.id_case
-        INNER JOIN status
-        ON status.id_status=cases_status.id_status
-        INNER JOIN budgets_damages_sectors
-        ON budgets_damages_sectors.id_case=cases.id_case
-        INNER JOIN incidents
-        ON incidents.id_incident=budgets_damages_sectors.id_incident
-        INNER JOIN budgets
-        ON budgets.id_budget=budgets_damages_sectors.id_budget
-        INNER JOIN advisers_budgets
-        ON advisers_budgets.id_budget=budgets.id_budget
-        INNER JOIN advisers
-        ON advisers.id_adviser=advisers_budgets.id_adviser
-        INNER JOIN clients_budgets
-        ON clients_budgets.id_budget=budgets.id_budget
-        INNER JOIN clients
-        ON clients.id_client=clients_budgets.id_client
-        WHERE ${tableName}.${searchField}='${searchresult}'
-        ORDER BY status.id_status ASC
-        LIMIT ${startingLimit},${resultsPerPage}`;
-        pool.query(sql, (err, users)=>{
-            if(err) throw err;
-            let iterator = (page - 5) < 1 ? 1 : page - 5;
-            let endingLink = (iterator + 9) <= numberOfPages ? (iterator + 9) : page + (numberOfPages - page);
-            if(endingLink < (page + 4)){
-                iterator -= (page + 4) - numberOfPages;
-            }
-            console.log(sql);
-            console.log('useeeeeeeeeeeeeeeeeeeeeeeeeeeeeeers  '+users);
-            if (users==''){
-                console.log(searchField+' no encontrado');
-            }
-            else{
-                //const fields = Object.keys(users[0])
-                res.render('cases', {cases:users, campos:'fields' ,page, iterator, endingLink, numberOfPages});
+        else {
+            table3=table2[0];
+            if (table3[table3.length-1]!='s'){
+                table3=table3+'s';
             }
             
-            
-        });
-    });
+        }
+
+        res.redirect(`/cases?table=${table3}&column=${column}&value=${value}`);
+    }
+    catch(error){
+        req.flash('message', 'Ocurrió un error en la búsqueda');
+        console.log(error)
+        res.redirect('cases')
+
+    }
+    
 });
 
 
 
 router.get('/cases',isLoggedIn, async (req, res) => {
-    let sql = 'SELECT * FROM cases ';
-    const {searchField, searchreult}=req.body;
-    console.log('resultados :                    '+searchField +'  '+ searchreult);
-    pool.query(sql,[req.user.id_adviser], (err, users) => {
-        if(err) throw err;
-        const numOfResults = users.length;
-        const numberOfPages = Math.ceil(numOfResults / resultsPerPage);
-        let page = req.query.page ? Number(req.query.page) : 1;
-        if(page > numberOfPages){
-            res.redirect('/?page='+encodeURIComponent(numberOfPages));
-        }else if(page < 1){
-            res.redirect('/?page='+encodeURIComponent('1'));
+    try{
+        const tablef            =   req.query.table;
+        const column            =   req.query.column;
+        const  value            =   req.query.value;
+        let sql="";
+        const statusColumns="Select status.status_name from status;";
+        console.log(tablef+"        "+column+"           "+value);
+        if (!tablef?.trim() || !column?.trim() || !value?.trim()) {
+            sql=`call showAllCases("cases","id_case",'>',"0")`;
         }
-        //Determine the SQL LIMIT starting number
-        const startingLimit = (page - 1) * resultsPerPage;
-        //Get the relevant number of POSTS for this starting page
-        sql = `SELECT advisers.adviser_name ,advisers.adviser_lastname, cases.id_case, status.status_name, DATE_FORMAT(cases.case_date, "%d/%l/%Y") case_date,
-        clients.client_name ,clients.client_lastname, clients.client_rut, clients.client_address, incidents.incident_code  FROM cases
-        INNER JOIN cases_status
-        ON cases_status.id_case=cases.id_case
-        INNER JOIN status
-        ON status.id_status=cases_status.id_status
-        INNER JOIN budgets_damages_sectors
-        ON budgets_damages_sectors.id_case=cases.id_case
-        INNER JOIN incidents
-        ON incidents.id_incident=budgets_damages_sectors.id_incident
-        INNER JOIN budgets
-        ON budgets.id_budget=budgets_damages_sectors.id_budget
-        INNER JOIN advisers_budgets
-        ON advisers_budgets.id_budget=budgets.id_budget
-        INNER JOIN advisers
-        ON advisers.id_adviser=advisers_budgets.id_adviser
-        INNER JOIN clients_budgets
-        ON clients_budgets.id_budget=budgets.id_budget
-        INNER JOIN clients
-        ON clients.id_client=clients_budgets.id_client
-        ORDER BY status.id_status ASC
-        LIMIT ${startingLimit},${resultsPerPage}`;
-        pool.query(sql, (err, users)=>{
-            if(err) throw err;
-            let iterator = (page - 5) < 1 ? 1 : page - 5;
-            let endingLink = (iterator + 9) <= numberOfPages ? (iterator + 9) : page + (numberOfPages - page);
-            if(endingLink < (page + 4)){
-                iterator -= (page + 4) - numberOfPages;
-            }
-
-            //pool.query(sql2, (err, field) => {
-                if(err) throw err;
-                console.log(users);
-                res.render('cases', {cases:users, campos:Object.keys(users[0]) ,page, iterator, endingLink, numberOfPages});
-
-            //});
+        else {
             
-        });
-    });
+            sql=`call showAllCases("${tablef}","${column}",'=',"${value}")`;
+        }
+        const [results]         =   await pool.query(sql);
+        campos_en               =   Object.keys(results[0]);
+        // this array must update each time that query is modify
+        campos_sp               =   ['N° de caso','Estado de caso', 'Fecha de caso','N° asesor','Nombre de asesor','Apellido de asesor','Código de siniestro','Nombre de cliente','Apellido de cliente','Rut de cliente','Dirección del cliente'];
+        //campos                  =   campos_sp.concat(campos_en);
+        showAllCases            =   results;
+        const statusResults     =   await pool.query(statusColumns);
+
+        const campos = campos_sp.map((elem, index) => {
+            return { campos_sp: elem, campos_en: campos_en[index] };
+          });
+
+        console.log(campos)
+        res.render('cases', {cases:showAllCases, campos, statusFields:statusResults});     
+    }
+    catch(error){
+        console.log(error)
+        req.flash('message', 'Ocurrió un error en casos');
+        res.redirect('cases')
+
+    }
+
 });
 
 router.get('/registers',isAdmin, async (req,res)=>{
-    const sql=`SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = 'cub' AND TABLE_NAME NOT LIKE '%\\_%' AND TABLE_NAME NOT IN ('budgets','sessions')`;
+    try{
+        const sql=`SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = 'cub' AND TABLE_NAME NOT LIKE '%\\_%' AND TABLE_NAME NOT IN ('budgets','sessions')`;
     const tables = await pool.query(sql);
     tableName='advisers';
     const desctable = await pool.query(`SELECT COLUMN_NAME, SUBSTRING_INDEX(COLUMN_NAME, '_', -1) AS nombreColumn FROM information_schema.columns WHERE TABLE_SCHEMA = 'cub' AND TABLE_NAME = '${tableName}'  ORDER BY ORDINAL_POSITION`);
     const table = await pool.query(`SELECT * from ${tableName}`);
     res.render('registers',{tables,table,desc:desctable,tableName});
+
+    }
+    catch(error){
+        req.flash('message', 'Ocurrió un error');
+        console.log(error)
+        res.redirect('/')
+    }
+    
 })
 
 
 router.post('/registers', isAdmin, async(req,res)=>{
-    const sql=`SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = 'cub' AND TABLE_NAME NOT LIKE '%\\_%' AND TABLE_NAME NOT IN ('budgets','sessions')`;
-    const tables = await pool.query(sql);
-    tableName=req.body.table_name;
-    const desctable = await pool.query(`SELECT COLUMN_NAME, SUBSTRING_INDEX(COLUMN_NAME, '_', -1) AS nombreColumn FROM information_schema.columns WHERE TABLE_SCHEMA = 'cub' AND TABLE_NAME = '${tableName}'  ORDER BY ORDINAL_POSITION`);
-    const table = await pool.query(`SELECT * from ${tableName}`);
+    try{
+        const sql=`SELECT TABLE_NAME FROM information_schema.tables WHERE TABLE_SCHEMA = 'cub' AND TABLE_NAME NOT LIKE '%\\_%' AND TABLE_NAME NOT IN ('budgets','sessions')`;
+        const tables = await pool.query(sql);
+        tableName=req.body.table_name;
+        const desctable = await pool.query(`SELECT COLUMN_NAME, SUBSTRING_INDEX(COLUMN_NAME, '_', -1) AS nombreColumn FROM information_schema.columns WHERE TABLE_SCHEMA = 'cub' AND TABLE_NAME = '${tableName}'  ORDER BY ORDINAL_POSITION`);
+        const table = await pool.query(`SELECT * from ${tableName}`);
 
-    res.render('registers',{tables, table,desc:desctable,tableName})
+        res.render('registers',{tables, table,desc:desctable,tableName})
+    }
+    catch(error){
+        console.log(error)
+        res.redirect('/')
+    }
 })
 
 
 
 router.get('/edit',isLoggedIn, async(req, res)=>{
     try{
-        const sql2=`Select  advisers.id_adviser,cases.id_case, sectors.sector_name, damages.damage_name, repairs.repair_unit as unit,budgets_damages_sectors.damage_size dms,
-        budgets_damages_sectors.sector_w_size as sws, budgets_damages_sectors.sector_l_size as sls, budgets_damages_sectors.sector_h_size as shs, damages_repairs.id_damage_repair, repairs.id_repair  
-        FROM cases
-        INNER JOIN cases_status
-        ON cases_status.id_case=cases.id_case
+       
         
-        INNER JOIN status
-        ON status.id_status=cases_status.id_status
-        
-        INNER JOIN budgets_damages_sectors
-        ON budgets_damages_sectors.id_case=cases.id_case
-        
-        INNER JOIN drs_bdss
-        ON drs_bdss.id_budget_damage_sector=budgets_damages_sectors.id_budget_damage_sector
-        
-        
-        INNER JOIN damages_repairs
-        ON damages_repairs.id_damage_repair=drs_bdss.id_damage_repair
-        
-        INNER JOIN repairs
-        ON repairs.id_repair=damages_repairs.id_repair
-        
-        INNER JOIN damages
-        ON damages.id_damage=damages_repairs.id_damage
-        
-        INNER JOIN sectors
-        ON sectors.id_sector=budgets_damages_sectors.id_sector
-        
-        
-        INNER JOIN budgets
-        ON budgets.id_budget=budgets_damages_sectors.id_budget
-        
-        INNER JOIN advisers_budgets
-        ON advisers_budgets.id_budget=budgets.id_budget
-        
-        INNER JOIN advisers
-        ON advisers.id_adviser=advisers_budgets.id_adviser
-        
-        where cases.id_case=${req.query.id_case} AND advisers.id_adviser=${req.user.id_adviser}`;
-        
-        //console.log("ACTION REPAIRS++++++++++++++++++++++++++++++++++++"+sql2)
-    
-        const action_repairs = await pool.query(sql2);
-        
-        res.render('edit/index',{action_repairs});
+        res.render('edit/index');
     }
     catch(error){
         console.log(error);
@@ -289,119 +193,124 @@ router.get('/edit',isLoggedIn, async(req, res)=>{
 });
 
 router.get('/sectors',isLoggedIn, async(req, res)=>{
-     // (select count(id_damage) from c_d_s where id_case=cs.id_case and id_sector=cs.id_sector) as ndamages 
     try{
-        let sql2=`SELECT
- 
-        cs.id_case,s.sector_name, count(cs.id_damage) as ndamages,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.damage_size,
-        clients.client_name as client_name, clients.client_lastname as client_lastname, clients.client_address as client_address, clients.client_rut as client_rut
-      
-
-
-        from cases c
-        inner join advisers a
-        on a.id_adviser=c.id_adviser
-
-        inner join clients
-        on clients.id_client=c.id_client
-
-        inner join status
-        on status.id_status=c.id_status
-
-        inner join c_d_s as cs
-        on cs.id_case=c.id_case
-
-        inner join damages
-        on damages.id_damage=cs.id_damage
-
-        inner join sectors s
-        on s.id_sector=cs.id_sector
-
-        inner join dimentions d
-        on d.id_sector=cs.id_sector and d.id_case=c.id_case
-
-        inner join incidents
-        on incidents.id_incident=c.id_incident
-
-
-        where cs.id_case=${req.query.id_case} AND a.id_adviser=${req.user.id_adviser}
-group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.damage_size, cs.id_case; `;
-        
+        let action_repairs;
+        let rowSectors='';
+        let querySelect="";
+        let string="";
         let vcase    =   req.query.id_case;
-        console.log("ACTION REPAIRS++++++++++++++++++++++++++++++++++++"+sql2)
-        const action_repairs = await pool.query(sql2);
-       
+
+            const showSectors=`call showSectors(${req.user.id_adviser},${req.query.id_case})`;       
+            
+            
+            
+            const [results] = await pool.query(showSectors);
+            
+            console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa "+JSON.stringify(results,null,2)+"              ultimo: ");
+            
+            const resultsSectors=results;
+            action_repairs =resultsSectors;
+
+            
+            if (results.length>0){
+                querySelect=`SELECT id_sector, sector_name FROM sectors WHERE id_sector <> ${results[0]['id_sector']}`;
+                for(let i=1;i<results.length;i++){
+                    string= string+ " and id_sector <> "+ results[i]['id_sector'];
+                }
+                querySelect=querySelect+string+";";
+                rowSectors= await pool.query(querySelect);
+            }
+    
+
+   
         
-        res.render('sectors/index',{action_repairs, vcase, client_data:{vaddress:action_repairs[0]['client_address'],vname:action_repairs[0]['client_name'], vlastname:action_repairs[0]['client_lastname']}});
+        res.render('sectors/index',{action_repairs, rowSectors,vcase, client_data:{vaddress:action_repairs[0]['client_address'],vname:action_repairs[0]['client_name'], vlastname:action_repairs[0]['client_lastname']}});
     }
     catch(error){
         console.log(error);
+        res.redirect(`/sectors?id_case=${req.query.id_case}`)
 
     }
 
 
 });
 
+
+
+router.post('/sectors',isLoggedIn, async(req, res)=>{
+    // (select count(id_damage) from c_d_s where id_case=cs.id_case and id_sector=cs.id_sector) as ndamages 
+   try{
+       let string="";
+    
+
+       let fname1= req.files['image'] && req.files['image'].length > 0 ? req.files['image'][0]['filename'] : '';
+       let fname2= req.files['image1'] && req.files['image1'].length > 0 ? req.files['image1'][0]['filename'] : '';
+
+       
+       let thumb1 =fname1? await sharp(req.files['image'][0]['path']).resize(120).toFile(req.files['image'][0]['destination']+`\\thumb_`+fname1, (err, info) => { console.log(err)}):'No ha subido imagen 1';
+       let thumb2 =fname2? await sharp(req.files['image1'][0]['path']).resize(120).toFile(req.files['image1'][0]['destination']+`\\thumb_`+fname2, (err, info) => { console.log(err)}):'No ha subido imagen 2';
+       
+
+
+       console.log("aaaaaaa laa  ctmmm     :"+ "body: "+req.body.id_sector +"   query  : "+req.body.id_case );
+
+       const queryInsert1       =   `insert into c_d_s (id_sector, id_case) values (${req.body.id_sector} ,${req.body.id_case});`;
+       const queryInsert2       =   `insert into dimentions (id_case, id_sector, sector_w_size, sector_l_size, sector_h_size, img1, img2)
+                                    values (${req.body.id_case}, ${req.body.id_sector}, ${req.body.sector_w_size},${req.body.sector_l_size},${req.body.sector_h_size},"${fname1}", "${fname2}")`;
+       
+       
+       const insertSector       =   await pool.query(queryInsert1);
+       const insertDimentions   =   await pool.query(queryInsert2);
+       const  [getl_id]           =   await pool.query("SELECT max(id_c_d_s) m_id from c_d_s");
+        console.log("estaaa es la wuea de get_iD"+getl_id['m_id']); 
+       
+       res.redirect(`damages?id_case=${req.body.id_case}&id_sector=${req.body.id_sector}&id_c_d_s=${getl_id['m_id']}`);
+   }
+   catch(error){
+       console.log(error);
+       req.flash('message', 'Ocurrió un error al ingresar un sector');
+       res.redirect(`sectors?id_case=${req.body.id_case}`);
+
+   }
+
+
+});
+
+
 router.get('/damages',isLoggedIn, async(req, res)=>{
-    try{ 
-        sql1="Select damage_name, damage_unit, id_damage from damages"; 
-        sql3="Select damage_unit from damages group by damage_unit"; 
-        let sql2=`      
-        SELECT     
-        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
-        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
-        id_damage_images
+    try{
+        const id_case           =   req.query.id_case;
+        const id_sector         =   req.query.id_sector;
+        const id_c_d_s          =    req.query.id_c_d_s;
+        const id_adviser        =   req.user.id_adviser;
+        sql1                    =   "Select damage_name, damage_unit, id_damage from damages"; 
+        sql3                    =   "Select damage_unit from damages group by damage_unit"; 
+        let sql2                =   `call queryDamages(${id_sector},${id_adviser},${id_case });`;
+        const vcase             =   id_case;
+        [results1]              =   await pool.query(`Select sector_name from sectors where id_sector=${id_sector}`);
+        sector_name             =   results1;
+        const defaultDamages    =   await pool.query(sql1);
+        const defaultDamageunits=   await pool.query(sql3);
 
-        from cases c
-        inner join advisers a
-        on a.id_adviser=c.id_adviser
-
-        inner join clients
-        on clients.id_client=c.id_client
-
-        inner join status
-        on status.id_status=c.id_status
-
-        inner join c_d_s as cs
-        on cs.id_case=c.id_case
-
-        inner join damages
-        on damages.id_damage=cs.id_damage
-
-        inner join sectors
-        on sectors.id_sector=cs.id_sector
-
-        inner join dimentions d
-        on d.id_sector=cs.id_sector and d.id_case=c.id_case
-
+        if (req.query.id_c_d_s){
+            res.render('damages',{vcase,defaultDamages,defaultDamageunits,id_case,id_sector, sector_name,id_c_d_s});
+        }
+        else{
+            
+            const [results]     =   await pool.query(sql2);
+            const damages       =   results;
+    
+                  
+            res.render('damages',{damages, vcase,defaultDamages,defaultDamageunits,id_case,id_sector, sector_name});
+        }
         
-        inner join incidents
-        on incidents.id_incident=c.id_incident
-
-        inner join d_c_d_s si
-        on si.id_c_d_s=cs.id_c_d_s
-
-        inner join damage_images im
-        on im.id_d_c_d_s=si.id_d_c_d_s
-
-
-        where cs.id_case=${req.query.id_case} and a.id_adviser=${req.user.id_adviser} and cs.id_sector=${req.query.id_sector};`;
-    console.log(sql2)
-        const vcase    =   req.query.id_case;
-        const defaultDamages = await pool.query(sql1);
-        const damages = await pool.query(sql2);
-        const defaultDamageunits  = await pool.query(sql3);
-        const id_case=req.query.id_case;
-        const id_sector=req.query.id_sector;
-        
-        res.render('damages/index',{damages,dir:__dirname, vcase,sname:damages[0]['sector_name'],defaultDamages,defaultDamageunits,id_case,id_sector});
     }
-    catch(error){
+    catch{
         console.log(error);
+        res.redirect(`damages?id_case=${req.body.id_case}&id_sector=${req.body.id_sector}`);
 
     }
-
-
+    
 });
 
 router.post('/damages', isLoggedIn,async (req,res)=>{
@@ -414,79 +323,23 @@ router.post('/damages', isLoggedIn,async (req,res)=>{
         let fname2= req.files['image1'] && req.files['image1'].length > 0 ? req.files['image1'][0]['filename'] : '';
         let fname3= req.files['image2'] && req.files['image2'].length > 0 ? req.files['image2'][0]['filename'] : '';
 
-
         console.log("ARCHIVOOOOOSS "+fname1+"         "+ fname2+ "        "+fname3);
+        
         
         let thumb1 =fname1? await sharp(req.files['image'][0]['path']).resize(120).toFile(req.files['image'][0]['destination']+`\\thumb_`+fname1, (err, info) => { console.log(err)}):'No ha subido imagen 1';
         let thumb2 =fname2? await sharp(req.files['image1'][0]['path']).resize(120).toFile(req.files['image1'][0]['destination']+`\\thumb_`+fname2, (err, info) => { console.log(err)}):'No ha subido imagen 2';
         let thumb3 =fname3? await sharp(req.files['image2'][0]['path']).resize(120).toFile(req.files['image2'][0]['destination']+`\\thumb_`+fname3, (err, info) => { console.log(err)}):'No ha subido imagen 3';
-
-       
-   
+        const id_c_d_s =req.body.id_c_d_s?req.body.id_c_d_s:0;
+     console.log(`ARCHIVOOOOOSS  ${req.body.id_sector},${id_c_d_s},${req.body.id_damage},${req.body.damage_size},${req.body.id_case},"${fname1}","${fname2}","${fname3}"`);
         
-        insert1=`CALL dataInsert(${req.body.id_sector},${req.body.id_damage},${req.body.damage_size},${req.body.id_case},"${fname1}","${fname2}","${fname3}");`
-       
+        insert1=`CALL dataInsert(${req.body.id_sector},${id_c_d_s},${req.body.id_damage},${req.body.damage_size},${req.body.id_case},"${fname1}","${fname2}","${fname3}");`
         const in1  = await pool.query(insert1);
-
-        sql1="Select damage_name, damage_unit, id_damage from damages"; 
-        sql3="Select damage_unit from damages group by damage_unit"; 
-        let sql2=` 
-        SELECT     
-        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
-        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit, cs.id_c_d_s, 
-        im.id_damage_images
-
-        from cases c
-        inner join advisers a
-        on a.id_adviser=c.id_adviser
-
-        inner join clients
-        on clients.id_client=c.id_client
-
-        inner join status
-        on status.id_status=c.id_status
-
-        inner join c_d_s as cs
-        on cs.id_case=c.id_case
-
-        inner join damages
-        on damages.id_damage=cs.id_damage
-
-        inner join sectors
-        on sectors.id_sector=cs.id_sector
-
-        inner join dimentions d
-        on d.id_sector=cs.id_sector and d.id_case=c.id_case
-        
-        inner join incidents
-        on incidents.id_incident=c.id_incident
-        
-        inner join d_c_d_s si
-        on si.id_c_d_s=cs.id_c_d_s
-
-        inner join damage_images im
-        on im.id_d_c_d_s=si.id_d_c_d_s
-
-        where cs.id_case=${req.body.id_case} and a.id_adviser=${req.user.id_adviser} and cs.id_sector=${req.body.id_sector};`;
-
-     
-       
-
-      
-      
-        const vcase    =   req.query.id_case;
-        const defaultDamages = await pool.query(sql1);
-        const damages = await pool.query(sql2);
-        const defaultDamageunits  = await pool.query(sql3);
-
-
-
-
-        
-        res.render('damages/index',{damages, vcase,sname:damages[0]['sector_name'],defaultDamages,defaultDamageunits,id_case,id_sector});
+        res.redirect(`/damages/?id_case=${id_case}&id_sector=${id_sector}`); 
     }
     catch(error){
         console.log(error);
+        req.flash('message', 'Ocurrió un error al agregar un daño');
+        res.redirect(`damages?id_case=${req.body.id_case}&id_sector=${req.body.id_sector}`);
 
     }
 })
@@ -503,103 +356,38 @@ router.get('/delreg',isLoggedIn,async(req,res)=>{
     let del=`DELETE FROM c_d_s where id_c_d_s=${id_c_d_s} and id_case=(select cases.id_case from cases where cases.id_adviser=${adviser} and cases.id_case=${id_case})`;
     console.log(del)
     const query= await pool.query(del);
-    sql1="Select damage_name, damage_unit, id_damage from damages"; 
-    sql3="Select damage_unit from damages group by damage_unit"; 
-    let sql2=`      
-    SELECT     
-    damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
-    si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
-    id_damage_images
 
-    from cases c
-    inner join advisers a
-    on a.id_adviser=c.id_adviser
-
-    inner join clients
-    on clients.id_client=c.id_client
-
-    inner join status
-    on status.id_status=c.id_status
-
-    inner join c_d_s as cs
-    on cs.id_case=c.id_case
-
-    inner join damages
-    on damages.id_damage=cs.id_damage
-
-    inner join sectors
-    on sectors.id_sector=cs.id_sector
-
-    inner join dimentions d
-    on d.id_sector=cs.id_sector and d.id_case=c.id_case
-
-    
-    inner join incidents
-    on incidents.id_incident=c.id_incident
-
-    inner join d_c_d_s si
-    on si.id_c_d_s=cs.id_c_d_s
-
-    inner join damage_images im
-    on im.id_d_c_d_s=si.id_d_c_d_s
-
-
-    where cs.id_case=${req.query.id_case} and a.id_adviser=${req.user.id_adviser} and cs.id_sector=${req.query.id_sector};`;
-
-    console.log(sql2)
-    const vcase    =   req.query.id_case;
-    const defaultDamages = await pool.query(sql1);
-    const damages = await pool.query(sql2);
-    const defaultDamageunits  = await pool.query(sql3);
-        res.render('damages/index',{damages,dir:__dirname, vcase,sname:damages[0]['sector_name'],defaultDamages,defaultDamageunits,id_case,id_sector});
+    console.log(query)
+        res.redirect(`/damages/?id_case=${id_case}&id_sector=${id_sector}`);
     }
     catch{
-
-
-        let sql2=`SELECT
- 
-        cs.id_case,s.sector_name, count(cs.id_damage) as ndamages,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.damage_size,
-        clients.client_name as client_name, clients.client_lastname as client_lastname, clients.client_address as client_address, clients.client_rut as client_rut
-      
-
-
-        from cases c
-        inner join advisers a
-        on a.id_adviser=c.id_adviser
-
-        inner join clients
-        on clients.id_client=c.id_client
-
-        inner join status
-        on status.id_status=c.id_status
-
-        inner join c_d_s as cs
-        on cs.id_case=c.id_case
-
-        inner join damages
-        on damages.id_damage=cs.id_damage
-
-        inner join sectors s
-        on s.id_sector=cs.id_sector
-
-        inner join dimentions d
-        on d.id_sector=cs.id_sector and d.id_case=c.id_case
-
-        inner join incidents
-        on incidents.id_incident=c.id_incident
-
-
-        where cs.id_case=${req.query.id_case} AND a.id_adviser=${req.user.id_adviser}
-group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.damage_size, cs.id_case; `;
-        
-        let vcase    =   req.query.id_case;
-        console.log("ACTION REPAIRS++++++++++++++++++++++++++++++++++++"+sql2)
-        const action_repairs = await pool.query(sql2);
-       
-        
-        res.render('sectors/index',{action_repairs, vcase, client_data:{vaddress:action_repairs[0]['client_address'],vname:action_repairs[0]['client_name'], vlastname:action_repairs[0]['client_lastname']}});
-  
+        console.log(error);
+        req.flash('message', 'Ocurrió un error al borrar');
+        res.redirect(`/sectors/?id_case=${id_case}`);
     }
+
+})
+
+
+router.get('/delsector',isLoggedIn,async(req,res)=>{
+
+
+    try{
+        
+        const delSector1=`delete from c_d_s where id_sector= ${req.query.id_sector} and id_case=${req.query.id_case}`;
+        const delSector2=`delete from dimentions where id_sector = ${req.query.id_sector} and id_case=${req.query.id_case} `;
+        result1= await pool.query(delSector1);
+        result2= await pool.query(delSector2);
+        req.flash('success', 'Dato Eliminado correctamente');
+        res.redirect(`/sectors/?id_case=${req.query.id_case}`);
+    }
+    catch{
+        console.log(error);
+        req.flash('message', 'Ocurrió un error al borrar');
+        res.redirect(`/sectors/?id_case=${req.query.id_case}`);
+
+    }
+
 
 })
 

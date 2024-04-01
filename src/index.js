@@ -43,7 +43,7 @@ const app = express();
 require('./lib/passport');
 
 // Settings
-app.set('port', process.env.PORT || 4000);
+app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 
 console.log(path.join(__dirname, 'js'));
@@ -90,6 +90,9 @@ app.engine('hbs', exphbs.engine({
           return prop;
         }
       }
+    },
+    objectToArray: function(object) {
+      return Object.entries(object);
     },
     findId: function(obj) {
       for (var prop in obj){

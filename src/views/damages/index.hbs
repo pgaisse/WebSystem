@@ -10,10 +10,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.js"></script>
 <div class="container">
   <div class="row">
-    <div class="col mx-auto">
+    <div class="col-md-10 mx-auto" align="left">
+       <a href="/sectors?id_adviser={{user.id_adviser}}&id_case={{id_case}}"><i class="fa-solid fa-arrow-left-long" style="margin-left: 0;"></i>Volver a Recintos</a>
       <div class="card text-center">
         <div class="card-header" align="left">
-          <h4>Daños en <b>{{sname}}</b></h4>
+          <h4>Daños en <b>{{sector_name.sector_name}}</b></h4>
 
        
         </div>
@@ -33,6 +34,7 @@
                     <td>{{ar.damage_name}}</td>
                     <td>{{ar.damage_unit}}</td>
                     <td>{{ar.damage_size}}</td>
+                     
                   <td>
                     
                       <div class="galeria">
@@ -51,56 +53,61 @@
                       </div>
                   </td>
                 </tr>
-                {{/damages}}
+               {{/damages}}
                  
               </tbody>
              
             </table>  
+            <button class="btn btn-success btn-block" id="toggleButton">Agregar Daños</button>
             <br/> 
             <div id="imagenCompletaContenedor" class="imagen-completa-contenedor" style="display: none;">
             
             <img src="" id="imagenCompleta" class="imagen-completa">
+
           </div>
-            <h5>Añadir nuevo registro</h5>
+          
+          <br/>
+           <div id="form" style="display:none;">  
+            
+            <h5 style="text-align: left;">Añadir nuevo registro</h5>
             <table class="table" style="text-align: center;" > 
               <thead>
-                <tr >
-                      <th>Daño</th><th></th><th>Cantidad</th><th>Subir Foto</th><th></th><th></th>  
-                </tr>
+
               </thead>
               <tbody style="text-align: center;">
-                 
-                <form action="/damages" method="POST" enctype="multipart/form-data">
-                    <tr>            
-                        
+                              
+                  <form action="/damages" method="POST" enctype="multipart/form-data">
+                      <tr>                                
+                          <td><select class="form-select" aria-label=".form-select-lg example" name="id_damage">
+                          {{#each defaultDamages}}{{this.id_damage}}<option value="{{this.id_damage}}"  selected="true">{{this.damage_name}} ({{this.damage_unit}})</option>{{/each}}
+                          </select></td>
+                      </tr>
+                      <tr>                                
+                          <td><input type="Number" class="form-control" value="0" id="damage_size" name="damage_size"></td>
+                      </tr>
+                        <tr>
+                          <td><label for="files" class="form-control" style="margin-bottom: -34px; "><i class="fa-solid fa-image" ></i></label>
+                          <input id='files' type="file" class="form-control" style="visibility:hidden;" name="image" accept="image/*"></td>
+                        </tr>
+                        <tr>
+                          <td><label for="files1" class="form-control" style="margin-bottom: -34px; "><i class="fa-solid fa-image" ></i></label>
+                          <input id='files1'  class="form-control" type="file" style="visibility:hidden;" name="image1" accept="image/*"></td>
+                        </tr>  
+                        <tr>                 
+                          <td><label for="files2" class="form-control" style="margin-bottom: -34px; "><i class="fa-solid fa-image" ></i></label>
+                          <input id='files2'  class="form-control"  type="file" style="visibility:hidden;" name="image2" accept="image/*"></td>
+                        </tr>
+                        <tr>
+                          <td><input type="hidden" name="id_case" id="id_case" value="{{id_case}}">
 
+                          <input type="hidden" name="id_c_d_s" id="id_c_d_s" value="{{id_c_d_s}}">
 
-
-                        
-                        <td><select class="form-select" aria-label=".form-select-lg example" name="id_damage">
-                        {{#each defaultDamages}}{{this.id_damage}}<option value="{{this.id_damage}}"  selected="true">{{this.damage_name}} ({{this.damage_unit}})</option>{{/each}}
-                        </select></td> 
-                        <td></td>
-                        <td><input type="Number" value="0" id="damage_size" name="damage_size"></td>
-                       
-                        <td> 
-                        <div >  
-                        <label for="files" class="custom-file-upload col-8"><i class="fa-solid fa-image" ></i></label>
-                        <input id='files' type="file" style="visibility:hidden;" name="image" accept="image/*">
-
-                        <label for="files1" class="custom-file-upload col-8"><i class="fa-solid fa-image" ></i></label>
-                        <input id='files1' type="file" style="visibility:hidden;" name="image1" accept="image/*">
-                        
-                        <label for="files2" class="custom-file-upload col-8" ><i class="fa-solid fa-image" ></i></label>
-                        <input id='files2' type="file" style="visibility:hidden;" name="image2" accept="image/*">
-                        </div>
-                        </td>
-                        <input type="hidden" name="id_case" id="id_case" value="{{id_case}}">
-                        <input type="hidden"  name="id_sector"  id="id_sector" value="{{id_sector}}">
-                        <td colspan="2" style=""><button class="btn btn-success btn-block" type="submit" id="upload" disabled><i class="fa-solid fa-check"></i></button></td> 
-                        
-                    </tr>
-                 </form>
+                          <input type="hidden"  name="id_sector"  id="id_sector" value="{{id_sector}}">
+                          <button class="btn btn-success btn-block" type="submit" id="upload" disabled><i class="fa-solid fa-check"></i></button></td> 
+                        </tr>
+                      
+                  </form>
+                 </div>
               </tbody>
 
             </table>    

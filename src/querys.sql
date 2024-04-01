@@ -201,16 +201,16 @@ VALUES
 (0,8,2,7);
 SELECT *from c_d_s;
 
-insert INTO dimentions (id_dimention,id_sector,id_case,sector_w_size,sector_h_size, sector_l_size, damage_size)
+insert INTO dimentions (id_dimention,id_sector,id_case,sector_w_size,sector_h_size, sector_l_size, img1, img2)
 values
-(0,1,1,11,35,26,4),
-(0,2,1,14,25,16,5),
-(0,3,1,11,21,13,4),
-(0,4,1,10,21,1,12),
-(0,5,2,15,5,6,11),
-(0,6,2,19,2,6,2),
-(0,7,2,2,1,6,34),
-(0,8,2,7,51,7,42);
+(0,1,1,11,35,26,'img1', 'img2'),
+(0,2,1,14,25,16,'img1', 'img2'),
+(0,3,1,11,21,13,'img1', 'img2'),
+(0,4,1,10,21,1,'img1', 'img2'),
+(0,5,2,15,5,6,'img1', 'img2'),
+(0,6,2,19,2,6,'img1', 'img2'),
+(0,7,2,2,1,6,'img1', 'img2'),
+(0,8,2,7,51,7,'img1', 'img2');
 
 
 select * from dimentions;
@@ -259,13 +259,11 @@ values
 select *from d_c_d_s;
 
 
-
-
-
-
-DELIMITER //
+DELIMITER // 
         DROP PROCEDURE IF EXISTS dataInsert;
-        CREATE PROCEDURE dataInsert(IN id_sector INT,
+        CREATE PROCEDURE dataInsert(
+        IN id_sector INT,
+        IN id_c_d_s INT,
         IN id_damage INT,
         IN damage_size INT,
         IN id_case INT,
@@ -273,16 +271,261 @@ DELIMITER //
         IN img2 VARCHAR(200),
         IN img3 VARCHAR(200))
         BEGIN
-        INSERT INTO c_d_s(id_c_d_s,id_damage,id_case,id_sector)
-        VALUES (0,id_damage,id_case,id_sector);
+        SELECT 'Se está ingresando al procedure' AS Mensaje;
+                IF id_c_d_s = 0  THEN
+                
+                        SELECT 'Se está ingresando un nuevo daño' AS Mensaje;
+   
+                        INSERT INTO c_d_s(id_c_d_s,id_damage,id_case,id_sector)
+                        VALUES (0,id_damage,id_case,id_sector);
 
-        SET @ultimo_id = LAST_INSERT_ID();
+                        SET @ultimo_id = LAST_INSERT_ID();
+
+                        INSERT INTO d_c_d_s(id_d_c_d_s,id_c_d_s,size)
+                        VALUES (0,@ultimo_id,damage_size);
+
+                        SET @ultimo2_id = LAST_INSERT_ID();
+
+                        INSERT INTO damage_images(id_damage_images,id_d_c_d_s, image1, image2, image3)
+                        VALUES (0,@ultimo2_id, img1,img2,img3);
+                ELSE
+                        SELECT 'Se está actualizando un nuevo daño' AS Mensaje;
+                        UPDATE c_d_s SET c_d_s.id_damage = id_damage WHERE id_c_d_s  = id_c_d_s;
+
+                        INSERT INTO d_c_d_s(id_d_c_d_s,id_c_d_s,size)
+                        VALUES (0,id_c_d_s,damage_size);
+                        SELECT CONCAT('se ha insertado datos en  d_c_d_s',0,id_c_d_s,damage_size) AS Mensaje;
+
+                        SET @ultimo2_id = LAST_INSERT_ID();
+                        INSERT INTO damage_images(id_damage_images,id_d_c_d_s, image1, image2, image3)
+                        VALUES (0,@ultimo2_id, img1,img2,img3);
+
+                END IF;
+         END //
+
+DELIMITER ;
+
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS dataUpdate;
+        CREATE PROCEDURE dataUpdate(IN id_damage INT,
+        IN id_c_d_s INT,
+        IN damage_size INT,
+        IN img1 VARCHAR(200),
+        IN img2 VARCHAR(200),
+        IN img3 VARCHAR(200))
+        BEGIN
+
+        UPDATE d_c_d_s SET d_c_d_s.id_damage = id_damage WHERE id_c_d_s  = id_c_d_s;
 
         INSERT INTO d_c_d_s(id_d_c_d_s,id_c_d_s,size)
-        VALUES (0,@ultimo_id,damage_size);
+        VALUES (0,id_c_d_s,damage_size);
         SET @ultimo2_id = LAST_INSERT_ID();
         INSERT INTO damage_images(id_damage_images,id_d_c_d_s, image1, image2, image3)
         VALUES (0,@ultimo2_id, img1,img2,img3);
+
+        END //
+
+DELIMITER ;
+
+
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS showAllCases;
+
+CREATE PROCEDURE showAllCases(
+    IN ntable VARCHAR(40),
+    IN nfield VARCHAR(40),
+    IN op VARCHAR(40),
+    IN nvalue VARCHAR(40)
+)
+BEGIN
+    -- Preparar la consulta SQL dinámica.
+    SET @query = CONCAT('SELECT cases.id_case, status.status_name, cases.case_date, advisers.id_adviser, advisers.adviser_name, 
+    advisers.adviser_lastname, incidents.incident_code, clients.client_name, clients.client_lastname, 
+    clients.client_rut, clients.client_address FROM cases INNER JOIN clients ON clients.id_client = cases.id_client 
+    INNER JOIN advisers ON advisers.id_adviser = cases.id_adviser INNER JOIN status ON status.id_status = cases.id_status 
+    INNER JOIN incidents ON incidents.id_incident = cases.id_incident WHERE ', ntable, '.', nfield, ' ', op, ' "', nvalue, '"');
+    
+    -- Preparar y ejecutar la consulta.
+    PREPARE stmt FROM @query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END //
+
+DELIMITER ;
+
+
+
+
+
+
+
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS showCases;
+        CREATE PROCEDURE showCases(IN adviser INT)
+        BEGIN
+        SELECT 
+        (select count(cs2.id_sector) from c_d_s cs2 inner join cases c2 
+        ON c2.id_case=cs2.id_case where c2.id_adviser=1 and cs2.id_case=cs.id_case) as nsectors, 
+        cs.id_case, 
+        cases.case_date,
+        clients.client_name, 
+        clients.client_lastname,
+        clients.client_address, 
+        clients.client_rut,
+        status.status_name
+        from c_d_s  as cs
+        inner join cases
+        on cases.id_case=cs.id_case
+        inner join advisers
+        on advisers.id_adviser=cases.id_adviser
+        inner join status
+        on status.id_status=cases.id_status
+        inner join clients
+        on clients.id_client=cases.id_client
+        where advisers.id_adviser=1
+        group by cs.id_case;
+
+        END //
+
+DELIMITER ;
+
+
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS showSectors;
+        CREATE PROCEDURE showSectors(
+        IN id_adviser INT,
+        IN id_case INT)
+        BEGIN
+        
+
+        SELECT
+ 
+        cs.id_case,s.sector_name, (
+            select count(*) from c_d_s cs2
+            inner join cases c2
+            on c2.id_case= cs2.id_case
+            where cs2.id_sector=cs.id_sector AND c2.id_case=id_case and c2.id_adviser=id_adviser and cs2.id_damage is not null)  as ndamages,
+            
+            s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,
+            d.img1, d.img2,
+        clients.client_name as client_name, 
+        clients.client_lastname as client_lastname, 
+        clients.client_address as client_address, 
+        clients.client_rut as client_rut
+
+        from cases c
+        inner join advisers a
+        on a.id_adviser=c.id_adviser
+
+        inner join clients
+        on clients.id_client=c.id_client
+
+        inner join status
+        on status.id_status=c.id_status
+
+        inner join c_d_s as cs
+        on cs.id_case=c.id_case
+
+        inner join sectors s
+        on s.id_sector=cs.id_sector
+
+        inner join dimentions d
+        on d.id_sector=s.id_sector
+
+        inner join incidents
+        on incidents.id_incident=c.id_incident
+
+
+        where cs.id_case=id_case and a.id_adviser=id_adviser and d.id_case=id_case group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size, cs.id_case,d.img1, d.img2; 
+
+
+
+        
+        
+        END //
+
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS delSector;
+        CREATE PROCEDURE delSector(
+        IN id_c_d_s INT,
+        IN id_adviser INT,
+        IN id_case INT)
+        BEGIN
+        
+        DELETE from c_d_s where id_c_d_s=
+
+        
+
+        END //
+
+DELIMITER ;
+
+
+
+
+
+
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS queryDamages;
+        CREATE PROCEDURE queryDamages(
+        IN id_sector INT,
+        IN id_adviser INT,
+        IN id_case INT)
+        BEGIN
+        SELECT     
+        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
+        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
+        id_damage_images
+
+        from cases c
+        inner join advisers a
+        on a.id_adviser=c.id_adviser
+
+        inner join clients
+        on clients.id_client=c.id_client
+
+        inner join status
+        on status.id_status=c.id_status
+
+        inner join c_d_s as cs
+        on cs.id_case=c.id_case
+
+        inner join damages
+        on damages.id_damage=cs.id_damage
+
+        inner join sectors
+        on sectors.id_sector=cs.id_sector
+
+        inner join dimentions d
+        on d.id_sector=cs.id_sector and d.id_case=c.id_case
+        
+        inner join incidents
+        on incidents.id_incident=c.id_incident
+
+        inner join d_c_d_s si
+        on si.id_c_d_s=cs.id_c_d_s
+
+        inner join damage_images im
+        on im.id_d_c_d_s=si.id_d_c_d_s
+
+        where cs.id_case=id_case and a.id_adviser=id_adviser and cs.id_sector=id_sector;
 
         END //
 
