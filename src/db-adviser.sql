@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `cub`.`status` (
 CREATE TABLE IF NOT EXISTS `cub`.`cases` (
   `id_case` INT(11) NOT NULL AUTO_INCREMENT,
   `id_status` INT(11) NOT NULL,
-  `id_adviser` INT(11) NOT NULL,
+  `id_adviser` INT(11),
   `id_client` INT(11) NOT NULL,
   `id_incident` INT(11) NOT NULL,
   `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -205,7 +205,6 @@ CREATE TABLE IF NOT EXISTS `cub`.`c_d_s` (
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
-
 
 -- -----------------------------------------------------
 -- Table `cub`.`dimentions`

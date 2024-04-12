@@ -8,18 +8,18 @@ const flash = require('connect-flash');
 const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
 
-const uuid= require('uuid');
-const unicid=uuid.v4();
+const uuid = require('uuid');
+const unicid = uuid.v4();
 
 // MULTER
 const multer = require('multer');
 const multer2 = require('multer');
 const storage = multer.diskStorage({
-  destination:  path.join(__dirname, '/public/uploads'),
-  filename:  (req, file, cb) => {
-    file.fieldname==="image"?cb(null, uuid.v4()+path.extname(file.originalname)):Error("Tipo de archivo no soportado"), false;
-    file.fieldname==="image1"?cb(null, uuid.v4()+path.extname(file.originalname)):Error("Tipo de archivo no soportado"), false;
-    file.fieldname==="image2"?cb(null, uuid.v4()+path.extname(file.originalname)):Error("Tipo de archivo no soportado"), false;
+  destination: path.join(__dirname, '/public/uploads'),
+  filename: (req, file, cb) => {
+    file.fieldname === "image" ? cb(null, uuid.v4() + path.extname(file.originalname)) : Error("Tipo de archivo no soportado"), false;
+    file.fieldname === "image1" ? cb(null, uuid.v4() + path.extname(file.originalname)) : Error("Tipo de archivo no soportado"), false;
+    file.fieldname === "image2" ? cb(null, uuid.v4() + path.extname(file.originalname)) : Error("Tipo de archivo no soportado"), false;
   }
 })
 
@@ -53,88 +53,104 @@ app.engine('hbs', exphbs.engine({
   layoutsDir: path.join(app.get('views'), 'layouts'),
   partialsDir: path.join(app.get('views'), 'partials'),
   extname: '.hbs',
-  helpers: {ifCond: function(v1, v2, options) {
-            console.log('1:'+ v1);
-            console.log('2:'+v2);
-            if(v1 === v2) { 
-                return options.fn(this); 
-            } 
-            return options.inverse(this); 
-
-        },
-        rest: function(v1) {
-          const result= v1-1;
-          if (result >=1){
-            return result;
-          }
-          else{
-            return 1;
-          }
-          
-
-      },
-      setVar: function(varName, varValue, options) {
-  options.data.root[varName] = varValue;
-},
-      sum: function(v1, max) {
-        const result= v1+1;
-        return result;
+  helpers: {
+    ifCond: function (v1, v2, options) {
+      console.log('1:' + v1);
+      console.log('2:' + v2);
+      if (v1 === v2) {
+        return options.fn(this);
+      }
+      return options.inverse(this);
 
     },
-    
-    findTable: function(obj) {
-      const id=0;
-      for (var prop in obj){
+
+    nodupl: function (name_sector,name_sector_ant) {
+      
+      if(name_sector!=name_sector_ant){
+
+        return "";
+      }
+      else{
+        return name_sector;
+      }
+
+      id_sector_ant=id_sector
+
+
+    },
+
+    rest: function (v1) {
+      const result = v1 - 1;
+      if (result >= 1) {
+        return result;
+      }
+      else {
+        return 1;
+      }
+
+
+    },
+    setVar: function (varName, varValue, options) {
+      options.data.root[varName] = varValue;
+    },
+    sum: function (v1, max) {
+      const result = v1 + 1;
+      return result;
+
+    },
+
+    findTable: function (obj) {
+      const id = 0;
+      for (var prop in obj) {
         //if(prop.includes('id_'))
         {
           return prop;
         }
       }
     },
-    objectToArray: function(object) {
+    objectToArray: function (object) {
       return Object.entries(object);
     },
-    findId: function(obj) {
-      for (var prop in obj){
+    findId: function (obj) {
+      for (var prop in obj) {
         //if(prop.includes('id_'))
         {
           return obj[prop];
         }
       }
     },
-    icons: function(nameTable) {
-      
-      
-        
-          var icons=[['incidents','fas fa-exclamation-triangle'],['repairs','fas fa-hammer'],['advisers','fas fa-user'], ['cases','fas fa-folder-open'],['clients','fas fa-user-friends'],['budgets','far fa-clipboard'],['damages','fas fa-house-damage'],['sectors','fas fa-map-marker-alt'],['status','fas fa-check-circle']];
-          //const objetoJSON = JSON.parse(icons);
-          
-         
-          for (let i = 0; i < 9; i++) {
-           if (icons[i][0]==nameTable)
-            {
-              return icons[i][1]
-            }
-          
-          }
-      
+    icons: function (nameTable) {
+
+
+
+      var icons = [['incidents', 'fas fa-exclamation-triangle'], ['repairs', 'fas fa-hammer'], ['advisers', 'fas fa-user'], ['cases', 'fas fa-folder-open'], ['clients', 'fas fa-user-friends'], ['budgets', 'far fa-clipboard'], ['damages', 'fas fa-house-damage'], ['dimentions', 'fa-solid fa-maximize'], ['sectors', 'fas fa-map-marker-alt'], ['status', 'fas fa-check-circle']];
+      //const objetoJSON = JSON.parse(icons);
+
+
+      for (let i = 0; i < icons.length; i++) {
+        if (icons[i][0] == nameTable) {
+          return icons[i][1]
+        }
+
+      }
+
     },
-    genField: function(type_f) { 
-      let html_v='';
-    
-       console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"+type_f);
-      if(type_f=='varchar'){
-        html_v= `<input type="text" name="adviser_name" placeholder="Name" class="form-control" >`;
+    genField: function (type_f) {
+      let html_v = '';
+
+      console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" + type_f);
+      if (type_f == 'varchar') {
+        html_v = `<input type="text" name="adviser_name" placeholder="Name" class="form-control" >`;
 
 
       }
-      else if('int'){
-        html_v= `<input type="Number" name="adviser_name" placeholder="Name" class="form-control" >`;
+      else if ('int') {
+        html_v = `<input type="Number" name="adviser_name" placeholder="Name" class="form-control" >`;
       }
-  return html_v;
-  }      
+      return html_v;
+    }
   },
-        
+
 }))
 app.set('view engine', '.hbs');
 
@@ -142,24 +158,24 @@ app.set('view engine', '.hbs');
 
 // Middlewares
 app.use(morgan('dev'));
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(multer({
   storage,
-  limits: {fileSize: 10000000},
-  dest:path.join(__dirname, '/public/uploads'),
-  fileFilter: (req, file,cb)=>{
-    const filetypes =/jpeg|png|jpg/
-    const minetype=filetypes.test(file.mimetype);
-    const extname=filetypes.test(path.extname(file.originalname))
-  if (minetype && extname){
-    return cb(null,true);
+  limits: { fileSize: 10000000 },
+  dest: path.join(__dirname, '/public/uploads'),
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|png|jpg/
+    const minetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(path.extname(file.originalname))
+    if (minetype && extname) {
+      return cb(null, true);
+    }
+    cb("error: el archivo debe ser una extensión válida");
   }
-  cb("error: el archivo debe ser una extensión válida");
-  }
-  
 
-}).fields([{ name: 'image', maxCount: 1 }, { name: 'image1', maxCount: 1 },{ name: 'image2', maxCount: 1 }]));
+
+}).fields([{ name: 'image', maxCount: 1 }, { name: 'image1', maxCount: 1 }, { name: 'image2', maxCount: 1 }]));
 
 app.use(session({
   secret: 'faztmysqlnodemysql',
@@ -189,6 +205,15 @@ app.use(express.static(path.join(__dirname, 'js')));
 app.use(express.static(path.join(__dirname, '/public/uploads')));
 
 // Starting
-app.listen(app.get('port'), () => {
-  console.log('Server is in port', app.get('port'));
-});
+try {
+  app.listen(app.get('port'), () => {
+    console.log('Server is in port', app.get('port'));
+  });
+
+}
+catch (error) {
+  app.listen(app.get('port'), () => {
+    console.log('Server is in port', app.get('port'));
+  });
+
+}

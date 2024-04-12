@@ -7,10 +7,10 @@ VALUES              (0,'Ana','Ramos Sánchez','15.152.156-5','1982-02-20','OUTER
 SELECT * FROM clients;
 
 INSERT INTO advisers(id_adviser, adviser_username, adviser_password, adviser_role, adviser_name, adviser_lastname, adviser_rut, adviser_email, adviser_birthday, adviser_phone)
-VALUES  (0, 'adv1', '$2a$10$wygKItjiy322HSWqEaSATeKBi3bljtVIRE6UtMY7iHhHpuHEte/uG', 'admin', 'John', 'Doe', '123456789', 'john.doe@example.com', '1980-05-15','7792014'),
-        (0, 'adv2', '$2a$10$wygKItjiy322HSWqEaSATeKBi3bljtVIRE6UtMY7iHhHpuHEte/uG', 'worker', 'Alice', 'Smith', '987654321', 'alice.smith@example.com', '1985-08-20','7722014'),
-        (0, 'adv3', '$2a$10$wygKItjiy322HSWqEaSATeKBi3bljtVIRE6UtMY7iHhHpuHEte/uG', 'admin', 'John', 'Doe', '123456789', 'john.doe@example.com', '1980-05-15','7792014'),
-        (0, 'adv4', '$2a$10$wygKItjiy322HSWqEaSATeKBi3bljtVIRE6UtMY7iHhHpuHEte/uG', 'worker', 'Alice', 'Smith', '987654321', 'alice.smith@example.com', '1985-08-20','7722014');
+VALUES  (0, 'adv1', '$2a$10$wygKItjiy322HSWqEaSATeKBi3bljtVIRE6UtMY7iHhHpuHEte/uG', 'admin', 'hector', 'monsalves', '123456789', 'galli.no@example.com', '1980-05-15','7792014'),
+        (0, 'adv2', '$2a$10$wygKItjiy322HSWqEaSATeKBi3bljtVIRE6UtMY7iHhHpuHEte/uG', 'worker', 'juan', 'perez', '987654321', 'juan.perez@example.com', '1985-08-20','7722014'),
+        (0, 'adv3', '$2a$10$wygKItjiy322HSWqEaSATeKBi3bljtVIRE6UtMY7iHhHpuHEte/uG', 'admin', 'pedro', 'gonzalez', '123456789', 'pgenzalez@example.com', '1980-05-15','7792014'),
+        (0, 'adv4', '$2a$10$wygKItjiy322HSWqEaSATeKBi3bljtVIRE6UtMY7iHhHpuHEte/uG', 'worker', 'cristian', 'moscoso', '987654321', 'cm@example.com', '1985-08-20','7722014');
 
 
 
@@ -174,6 +174,17 @@ INSERT INTO cases (id_case,id_status,id_adviser,id_client,id_incident, case_date
 (0,2,1,2,2,'2015-05-23'),
 (0,3,3,3,3,'2015-05-24'),
 (0,1,4,4,4,'2015-05-25');
+
+
+select *from cases;
+
+
+INSERT INTO cases (id_case,id_status,id_client,id_incident, case_date)values
+(0,1,1,1,'2015-05-22'),
+(0,1,2,2,'2015-05-23'),
+(0,2,4,2,'2015-05-24'),
+(0,2,3,3,'2015-05-25');
+
 
 select *from cases;
 
@@ -345,8 +356,15 @@ BEGIN
     SET @query = CONCAT('SELECT cases.id_case, status.status_name, cases.case_date, advisers.id_adviser, advisers.adviser_name, 
     advisers.adviser_lastname, incidents.incident_code, clients.client_name, clients.client_lastname, 
     clients.client_rut, clients.client_address FROM cases INNER JOIN clients ON clients.id_client = cases.id_client 
-    INNER JOIN advisers ON advisers.id_adviser = cases.id_adviser INNER JOIN status ON status.id_status = cases.id_status 
-    INNER JOIN incidents ON incidents.id_incident = cases.id_incident WHERE ', ntable, '.', nfield, ' ', op, ' "', nvalue, '"');
+    LEFT JOIN advisers 
+    ON advisers.id_adviser = cases.id_adviser 
+    INNER JOIN status 
+    ON status.id_status = cases.id_status 
+    INNER JOIN incidents 
+    ON incidents.id_incident = cases.id_incident WHERE ', ntable, '.', nfield, ' ', op, ' "', nvalue, '"
+    ORDER BY (cases.id_adviser IS NULL) DESC;
+    
+    ');
     
     -- Preparar y ejecutar la consulta.
     PREPARE stmt FROM @query;
@@ -405,14 +423,15 @@ DELIMITER //
 
         SELECT
  
-        cs.id_case,s.sector_name, (
+        c.id_case,c.id_adviser,
+	
+ (
             select count(*) from c_d_s cs2
             inner join cases c2
             on c2.id_case= cs2.id_case
-            where cs2.id_sector=cs.id_sector AND c2.id_case=id_case and c2.id_adviser=id_adviser and cs2.id_damage is not null)  as ndamages,
+            where cs2.id_sector=cs.id_sector AND c2.id_case=id_case and c2.id_adviser=id_adviser and cs2.id_damage is not null)  as ndamages, 
             
-            s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,
-            d.img1, d.img2,
+        s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size,d.img1, d.img2,
         clients.client_name as client_name, 
         clients.client_lastname as client_lastname, 
         clients.client_address as client_address, 
@@ -422,26 +441,28 @@ DELIMITER //
         inner join advisers a
         on a.id_adviser=c.id_adviser
 
-        inner join clients
+        left join clients
         on clients.id_client=c.id_client
 
-        inner join status
+        left join status
         on status.id_status=c.id_status
 
-        inner join c_d_s as cs
+        left join c_d_s as cs
         on cs.id_case=c.id_case
 
-        inner join sectors s
+        left join sectors s
         on s.id_sector=cs.id_sector
 
-        inner join dimentions d
-        on d.id_sector=s.id_sector
+        left join dimentions d
+        on d.id_sector=s.id_sector  and d.id_case=c.id_case
 
         inner join incidents
         on incidents.id_incident=c.id_incident
 
 
-        where cs.id_case=id_case and a.id_adviser=id_adviser and d.id_case=id_case group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size, cs.id_case,d.img1, d.img2; 
+        where c.id_case=id_case and a.id_adviser=id_adviser
+        group by s.sector_name,s.id_sector,d.sector_w_size,d.sector_h_size,d.sector_l_size, cs.id_case,d.img1, d.img2, cs.id_sector,c.id_case; 
+
 
 
 
@@ -526,6 +547,84 @@ DELIMITER //
         on im.id_d_c_d_s=si.id_d_c_d_s
 
         where cs.id_case=id_case and a.id_adviser=id_adviser and cs.id_sector=id_sector;
+
+        END //
+
+DELIMITER ;
+
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS showCase;
+        CREATE PROCEDURE showCase(
+        IN id_case INT,
+        IN id_adviser INT)
+        BEGIN
+        SELECT cl.client_address, cl.client_email, cl.client_name, cl.client_lastname, cl.client_rut,cl.id_client, cl.client_phone,
+               a.id_adviser, a.adviser_name, a.adviser_lastname, a.adviser_rut,a.adviser_email,a.adviser_username,a.adviser_role,a.adviser_phone,
+               i.incident_code, i.incident_date, i.incident_description,
+               c.id_case,
+               st.status_name, st.id_status               
+               FROM cases as c
+               INNER JOIN Clients as cl
+               ON cl.id_client=c.id_client
+               LEFT JOIN advisers as a
+               ON a.id_adviser=c.id_adviser
+               INNER JOIN status as st
+               ON st.id_status=c.id_status
+               INNER JOIN incidents as i
+               ON i.id_incident=c.id_incident
+               WHERE c.id_case=id_case;
+        
+
+        END //
+
+DELIMITER ;
+
+
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS queryDamages2;
+        CREATE PROCEDURE queryDamages2(
+        IN id_adviser INT,
+        IN id_case INT)
+        BEGIN
+        SELECT     
+        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
+        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
+        id_damage_images, sectors.createdAt as datec
+
+        from cases c
+        inner join advisers a
+        on a.id_adviser=c.id_adviser
+
+        inner join clients
+        on clients.id_client=c.id_client
+
+        inner join status
+        on status.id_status=c.id_status
+
+        inner join c_d_s as cs
+        on cs.id_case=c.id_case
+
+        inner join damages
+        on damages.id_damage=cs.id_damage
+
+        inner join sectors
+        on sectors.id_sector=cs.id_sector
+
+        inner join dimentions d
+        on d.id_sector=cs.id_sector and d.id_case=c.id_case
+        
+        inner join incidents
+        on incidents.id_incident=c.id_incident
+
+        inner join d_c_d_s si
+        on si.id_c_d_s=cs.id_c_d_s
+
+        inner join damage_images im
+        on im.id_d_c_d_s=si.id_d_c_d_s
+
+        where cs.id_case=id_case and a.id_adviser=id_adviser;
 
         END //
 

@@ -241,7 +241,13 @@ body{
   overflow: auto;
   opacity: 100%;
 }
-
+#tablecase{
+  text-align: left;
+  color: #2e2b2b;
+}
+#tablecaset{
+  text-align: left;
+}
 .imagen-completa {
   max-width: 90%; /* Ajusta al tamaño deseado, con espacio alrededor */
   max-height: 90%; /* Limita la altura para asegurar que quepa en la pantalla */
@@ -256,8 +262,24 @@ body{
   margin: 2px;
 }
 
+.thead-gray{
+  background-color: #ccc;
+}
 
 
+.nt-li:focus,
+.nt-li.active {
+  background-color: #f9fafb;
+}
+
+.nt-li:focus *,
+.nt-li.active * {
+  color: black!important;
+}
+
+.nt-li>.d-flex:hover {
+  background-color: #f8f9fa;
+}
 
 
 
