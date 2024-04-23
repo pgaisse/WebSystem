@@ -280,7 +280,8 @@ DELIMITER //
         IN id_case INT,
         IN img1 VARCHAR(200),
         IN img2 VARCHAR(200),
-        IN img3 VARCHAR(200))
+        IN img3 VARCHAR(200),
+        IN customized INT)
         BEGIN
         SELECT 'Se está ingresando al procedure' AS Mensaje;
                 IF id_c_d_s = 0  THEN
@@ -292,8 +293,8 @@ DELIMITER //
 
                         SET @ultimo_id = LAST_INSERT_ID();
 
-                        INSERT INTO d_c_d_s(id_d_c_d_s,id_c_d_s,size)
-                        VALUES (0,@ultimo_id,damage_size);
+                        INSERT INTO d_c_d_s(id_d_c_d_s,id_c_d_s,size,customized)
+                        VALUES (0,@ultimo_id,damage_size,customized);
 
                         SET @ultimo2_id = LAST_INSERT_ID();
 
@@ -303,8 +304,8 @@ DELIMITER //
                         SELECT 'Se está actualizando un nuevo daño' AS Mensaje;
                         UPDATE c_d_s SET c_d_s.id_damage = id_damage WHERE id_c_d_s  = id_c_d_s;
 
-                        INSERT INTO d_c_d_s(id_d_c_d_s,id_c_d_s,size)
-                        VALUES (0,id_c_d_s,damage_size);
+                        INSERT INTO d_c_d_s(id_d_c_d_s,id_c_d_s,size,customized)
+                        VALUES (0,id_c_d_s,damage_size,customized);
                         SELECT CONCAT('se ha insertado datos en  d_c_d_s',0,id_c_d_s,damage_size) AS Mensaje;
 
                         SET @ultimo2_id = LAST_INSERT_ID();
@@ -390,6 +391,8 @@ DELIMITER //
         ON c2.id_case=cs2.id_case where c2.id_adviser=1 and cs2.id_case=cs.id_case) as nsectors, 
         cs.id_case, 
         cases.case_date,
+        cases.img1,
+        cases.img2,
         clients.client_name, 
         clients.client_lastname,
         clients.client_address, 
@@ -511,7 +514,7 @@ DELIMITER //
         IN id_case INT)
         BEGIN
         SELECT     
-        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
+        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,si.customized,
         si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
         id_damage_images
 
@@ -560,9 +563,9 @@ DELIMITER //
         IN id_adviser INT)
         BEGIN
         SELECT cl.client_address, cl.client_email, cl.client_name, cl.client_lastname, cl.client_rut,cl.id_client, cl.client_phone,
-               a.id_adviser, a.adviser_name, a.adviser_lastname, a.adviser_rut,a.adviser_email,a.adviser_username,a.adviser_role,a.adviser_phone,
+         a.adviser_name, a.adviser_lastname, a.adviser_rut,a.adviser_email,a.adviser_username,a.adviser_role,a.adviser_phone,
                i.incident_code, i.incident_date, i.incident_description,
-               c.id_case,
+               c.id_case, c.img1,c.img2,a.id_adviser,
                st.status_name, st.id_status               
                FROM cases as c
                INNER JOIN Clients as cl
@@ -589,10 +592,9 @@ DELIMITER //
         IN id_case INT)
         BEGIN
         SELECT     
-        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name, sectors.id_sector,
+        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name,si.customized, sectors.id_sector, d.sector_w_size,d.sector_h_size,d.sector_l_size, d.img1, d.img2,
         si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
         id_damage_images, sectors.createdAt as datec
-
         from cases c
         inner join advisers a
         on a.id_adviser=c.id_adviser
@@ -608,6 +610,101 @@ DELIMITER //
 
         inner join damages
         on damages.id_damage=cs.id_damage
+
+        inner join sectors
+        on sectors.id_sector=cs.id_sector
+
+        inner join dimentions d
+        on d.id_sector=cs.id_sector and d.id_case=c.id_case
+        
+        inner join incidents
+        on incidents.id_incident=c.id_incident
+
+        inner join d_c_d_s si
+        on si.id_c_d_s=cs.id_c_d_s
+
+        inner join damage_images im
+        on im.id_d_c_d_s=si.id_d_c_d_s
+
+        where cs.id_case=id_case and a.id_adviser=id_adviser;
+
+        END //
+
+DELIMITER ;
+
+
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS addDamageRepair;
+        CREATE PROCEDURE addDamageRepair(
+        IN damage_name VARCHAR(100),
+        IN damage_unit VARCHAR(10),
+        IN damage_desc VARCHAR(200),
+        IN cadena VARCHAR(200),
+        IN adviser_name VARCHAR(100))
+        BEGIN
+        DECLARE longitud INT;
+        DECLARE posicion INT DEFAULT 1;
+        DECLARE valor VARCHAR(255);
+
+        INSERT into damages (id_damage,damage_name,damage_unit,damage_description, createdby)
+        values (0,damage_name,damage_unit,damage_desc,adviser_name);
+        SET @ultimo_id = LAST_INSERT_ID();
+    
+
+
+
+    -- Obtener la longitud de la cadena
+    SET longitud = LENGTH(cadena);
+
+    -- Mientras haya caracteres por recorrer en la cadena
+    WHILE posicion <= longitud DO
+        -- Encontrar la posición de la próxima coma
+        SET posicion = IF(LOCATE(',', cadena) > 0, LOCATE(',', cadena), longitud + 1);
+        -- Extraer el valor entre la posición actual y la próxima coma
+        SET valor = SUBSTRING(cadena, 1, posicion - 1);
+        -- Eliminar el valor extraído de la cadena
+        SET cadena = SUBSTRING(cadena, posicion + 1);
+            insert into damages_repairs(id_damage_repair,id_damage, id_repair)
+        values (0,@ultimo_id, valor);
+        END WHILE;
+
+
+        END //
+
+DELIMITER ;
+
+DELIMITER //
+        DROP PROCEDURE IF EXISTS budget;
+        CREATE PROCEDURE budget(
+        IN id_adviser INT,
+        IN id_case INT)
+        BEGIN
+        SELECT     
+        damages.damage_name, damages.damage_description,a.id_adviser, c.id_case, sectors.sector_name,si.customized, sectors.id_sector, d.sector_w_size,d.sector_h_size,d.sector_l_size, d.img1, d.img2,
+        si.size as damage_size, im.image1 as damage_image1, im.image2 as damage_image2, im.image3 as damage_image3, damages.damage_unit,cs.id_c_d_s,
+        id_damage_images, sectors.createdAt as datec, repairs.repair_name
+        from cases c
+        inner join advisers a
+        on a.id_adviser=c.id_adviser
+
+        inner join clients
+        on clients.id_client=c.id_client
+
+        inner join status
+        on status.id_status=c.id_status
+
+        inner join c_d_s as cs
+        on cs.id_case=c.id_case
+
+        inner join damages
+        on damages.id_damage=cs.id_damage
+
+        inner join damages_repairs
+        on damages_repairs.id_damage=damages.id_damage
+
+        inner join repairs
+        on repairs.id_repair=damages_repairs.id_repair
 
         inner join sectors
         on sectors.id_sector=cs.id_sector

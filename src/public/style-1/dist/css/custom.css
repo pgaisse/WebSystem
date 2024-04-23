@@ -284,3 +284,34 @@ body{
 
 
 
+.nav-tree{
+  flex-grow: 1; /* Permite que el elemento ocupe todo el espacio disponible */
+  flex-basis: 0; /* Inicializa el tamaño base a cero para que pueda expandirse */
+}
+.form-control2{
+padding: 0;
+  margin-bottom: 10px;
+}.form-control3 {
+  column-count: 2; /* Divide el contenido en dos columnas */
+  column-gap: 20px; /* Espacio entre columnas */
+}
+
+
+/* Estilo base para los elementos */
+.elemento {
+  transition: all 0.3s ease; /* Transición suave para los cambios */
+}
+
+/* Estilo cuando el mouse está encima del elemento */
+.elemento1:hover {
+  color: green; /* Cambio de color a verde */
+  transform: scale(1.5); /* Aumento del tamaño en un 10% */
+  cursor: pointer; /* Cambio del cursor a la forma de puntero */
+  margin-left: auto;
+}
+.elemento2:hover {
+  color: green; /* Cambio de color a verde */
+  transform: scale(1.5); /* Aumento del tamaño en un 10% */
+  cursor: pointer; /* Cambio del cursor a la forma de puntero */
+  margin-left: auto;
+}

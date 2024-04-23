@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS `cub`.`damages` (
   `damage_name` VARCHAR(150) NOT NULL,
   `damage_description` TEXT NULL DEFAULT NULL,
   `damage_unit` VARCHAR(40) NOT NULL,
+  `createdby` VARCHAR(40),
   `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_damage`));
 
@@ -127,6 +128,8 @@ CREATE TABLE IF NOT EXISTS `cub`.`cases` (
   `id_incident` INT(11) NOT NULL,
   `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `case_date` TIMESTAMP NOT NULL,
+  `img1` VARCHAR(200),
+  `img2` VARCHAR(200),
   PRIMARY KEY (`id_case`),
   INDEX `fk_cases_status1_idx` (`id_status` ASC) VISIBLE,
   INDEX `fk_cases_advisers1_idx` (`id_adviser` ASC) VISIBLE,
@@ -162,6 +165,7 @@ CREATE TABLE IF NOT EXISTS `cub`.`damages_repairs` (
   `id_damage_repair` INT(11) NOT NULL AUTO_INCREMENT,
   `id_damage` INT(11) NOT NULL,
   `id_repair` INT(11) NOT NULL,
+  `createdby` VARCHAR(100),
   INDEX `fk_damages_has_repairs_repairs1_idx` (`id_repair` ASC) VISIBLE,
   INDEX `fk_damages_has_repairs_damages1_idx` (`id_damage` ASC) VISIBLE,
   PRIMARY KEY (`id_damage_repair`),
@@ -243,6 +247,7 @@ CREATE TABLE IF NOT EXISTS `cub`.`d_c_d_s` (
   `id_d_c_d_s` INT NOT NULL AUTO_INCREMENT,
   `id_c_d_s` INT NOT NULL,
   `size` DECIMAL(10) NOT NULL,
+  `customized` INT(1),
   PRIMARY KEY (`id_d_c_d_s`),
   INDEX `fk_d_c_d_s_c_d_s1_idx` (`id_c_d_s` ASC) VISIBLE,
   CONSTRAINT `fk_d_c_d_s_c_d_s1`

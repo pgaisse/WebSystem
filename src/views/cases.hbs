@@ -12,7 +12,7 @@
                 <div class="card-body" align="left">
                     <h4>Lista de Casos</h4>
 
-                    <button class="btn btn-success btn-block" id="toggleButton">Buscar</button>
+                    <a href="#" class="form-control" id="toggleButton">Buscar</a>
                     <br />
 
                     <div id="form" style="display:none;">
@@ -38,7 +38,7 @@
                                     
                                 </tr>
                                 <tr>
-                                    <button class="btn btn-success btn-block"><i class="fas fa-search"></i></button>
+                                    <button class="btn btn-success btn-block form-control"><i class="fas fa-search"></i></button>
                                 </tr>
 
 
@@ -90,7 +90,7 @@
                                 <td>#{{this.incident_code}}</td>
                                 <td>{{this.client_rut}}</td>
                                 <td>{{this.client_address}}</td>
-                                <td><a href="#"><i class="fa-solid fa-file-lines">Presupuesto</i></a></td>
+                                <td><a href="/createPdf?id_case={{this.id_case}}"><i class="fa-solid fa-file-lines">Presupuesto</i></a></td>
                             </tr>
                             {{/each}}
                         </tbody>

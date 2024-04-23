@@ -19,6 +19,8 @@
     "nodemon": "^3.0.3",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
+    "pdfkit": "^0.15.0",
+    "pdfkit-table": "^0.1.99",
     "sharp": "^0.33.2",
     "timeago": "^1.6.7",
     "timeago.js": "^4.0.2",

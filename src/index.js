@@ -45,6 +45,7 @@ require('./lib/passport');
 // Settings
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
+app.set('defimages', path.join(__dirname, 'public/style-1/img'));
 
 console.log(path.join(__dirname, 'js'));
 
@@ -64,21 +65,30 @@ app.engine('hbs', exphbs.engine({
 
     },
 
-    nodupl: function (name_sector,name_sector_ant) {
-      
-      if(name_sector!=name_sector_ant){
+    nodupl: function (name_sector, name_sector_ant) {
+
+      if (name_sector != name_sector_ant) {
 
         return "";
       }
-      else{
+      else {
         return name_sector;
       }
 
-      id_sector_ant=id_sector
+      id_sector_ant = id_sector
 
 
     },
 
+    or: function (v1, v2, options) {
+      if (v1 || v2) {
+        return options.fn(this);
+      }
+      else {
+        return options.inverse(this);
+
+      }
+    },
     rest: function (v1) {
       const result = v1 - 1;
       if (result >= 1) {

@@ -222,3 +222,4 @@ document.getElementById('toggleButton').addEventListener('click', function () {
 });
 
 
+$(".alert").alert('close')

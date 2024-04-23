@@ -306,23 +306,55 @@
 
                     {{/if}}
 -->
-<h5><b>Detalles de Inspección</b></h5>
+                        <h5><b>Detalles de Inspección</b></h5>
+                        <p> Fotos de Fachada: </p>
+                        <p style="text-align: center;"> {{#each data}} 
+                                                         {{#if this.img1}}
+                                            <img src="/thumb_{{this.img1}}" data-full-image="/{{this.img1}}"
+                                                alt="Imagen 1" class="miniatura" id="imagebox1">
+                                            {{/if}}
+                                            {{#if this.img2}}
+                                            <img src="/thumb_{{this.img2}}" data-full-image="/{{this.img2}}"
+                                                alt="Imagen 2" class="miniatura" id="imagebox2">
+                                            {{/if}}
+                              {{/each}} </p>
                         {{#if rowDamages.[0].sector_name}}
 
-                        
-
-                        <ul id="nav-tree" width="100%">
-                            {{#each rowDamages}}
+                        <ul id="nav-tree" class="nav-tree">
+                            {{#each rowDamages as |d|}}
                             <li id="li20-{{@index}}" data-value="li20-{{@index}}">
                                 <a>
-                                    {{this.sector_name}}
+                                    {{this.sector_name}} ({{this.damages.length}})
                                 </a>
-
                                 <ul>
+                                    <table class="table">
+                                     {{#with d.damages.[0]}}
+                                     <tr>
+                                        <td>
+                                            <b>Dimensiones: </b> Ancho: {{sector_w_size}}, Alto:{{sector_h_size}}, Largo:{{sector_l_size}}
+                                        </td>
+                                     </tr>
+                                    <tr>
+                                        <td>
+                                           
+
+                                            {{#if this.img1}}
+                                            <img src="/thumb_{{this.img1}}" data-full-image="/{{this.img1}}"
+                                                alt="Imagen 1" class="miniatura" id="imagebox1">
+                                            {{/if}}
+                                            {{#if this.img2}}
+                                            <img src="/thumb_{{this.img2}}" data-full-image="/{{this.img2}}"
+                                                alt="Imagen 2" class="miniatura" id="imagebox2">
+                                            {{/if}}
+                                            
+                                        </td>
+                                    </tr>
+                                    {{/with}}
+                                </table>
                                     {{#each damages}}
                                     <li id="li40-{{this.id_damage_images}}" data-value="li40-{{this.id_damage_images}}">
                                         <a>
-                                            {{this.damage_name}} ({{this.damage_size}} {{this.damage_unit}})
+                                            {{this.damage_name}}
                                         </a>
 
                                         <ul>
@@ -352,10 +384,18 @@
                                                             </td>
                                                         </tr>
                                                         <tr>
-                                                            <td> Descripción del daño </td>
+                                                            <td id="tablecaset" style="text-transform: none;">
+                                                                <b> Cantidad de daño</b>
+                                                           
+                                                                {{this.damage_size}}({{#if this.customized}} m<sup>2</sup>{{else}}{{this.damage_unit}}{{/if}})
+                                                            </td>
                                                         </tr>
                                                         <tr>
-                                                            <td style="text-align: justify;"> Lorem ipsum dolor sit
+                                                            <td id="tablecase"> <b> Descripción del daño</b> </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="text-align: justify;">
+                                                                {{this.damage_description}} Lorem ipsum dolor sit
                                                                 amet consectetur adipisicing elit. Aliquid delectus
                                                                 ducimus hic expedita nulla voluptates laborum
                                                                 repellendus itaque necessitatibus minima impedit
@@ -375,7 +415,7 @@
                             </li>
                         </ul>
                         {{else}}
-                        <p  style="font-style: italic;color: red;"> No hay registros en esta inspección</p>
+                        <p style="font-style: italic;color: red;"> No hay registros en esta inspección</p>
                         {{/if}}
 
 
