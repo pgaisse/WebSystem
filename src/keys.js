@@ -2,11 +2,11 @@ module.exports = {
 
     database: {
         connectionLimit: 10,
-        host: 'localhost',
-        user: 'root',
-        password: 'Patoch-2202',
+        host: 'sql.freedb.tech',
+        user: 'freedb_pgaisse',
+        password: 'z!y$CZQVjMb6Ukg',
         //database: 'db_links'
-        database: 'cub',
+        database: 'freedb_cub_111',
         dateStrings:true,
     }
 
